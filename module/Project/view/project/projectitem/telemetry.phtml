@@ -1,0 +1,24 @@
+<?php
+if (!$project->getTelemetry()) {
+    echo $this->partial('error/403.phtml');
+    return;
+}
+?>
+<div class="row-fluid">
+    <div class="span12">
+        <!-- BEGIN INTERACTIVE CHART PORTLET-->
+        <div class="widget blue">
+            <div class="widget-title">
+                <h4><i class="icon-bar-chart"></i> System Telemetry</h4>
+            <span class="tools">
+            <a href="javascript:;" class="icon-chevron-down"></a>
+            </span>
+            </div>
+            <div class="widget-body" style="height: 1000px">
+                <iframe src="http://portal.liteip.com/8p3/8p3login.aspx?E=<?php echo $project->getTelemetry()->getUser(); ?>&P=<?php echo $project->getTelemetry()->getPassword(); ?>" style="border: 0; width: 100%; height: 100%"></iframe>
+            </div>
+        </div>
+        <!-- END INTERACTIVE CHART PORTLET-->
+    </div>
+</div>
+

@@ -1,0 +1,152 @@
+<style>
+    .table.config th {
+        font-weight: bold;
+        text-align: left;
+        padding-right: 10px
+    }
+    
+    .table.config td {
+        font-weight: normal;
+        text-align: left;
+        padding-right: 50px
+    }
+
+    table.quote-space {
+        width: 100%;
+        border-spacing: 0;
+        margin-bottom: 30px;
+    }
+
+    table.quote-space thead {
+        border-bottom: 1px #ccc solid;
+    }
+
+    table.quote-space tbody tr td {
+        border-bottom: 1px #ccc solid;
+    }
+
+    table.quote-space tfoot tr td {
+        border-bottom: 1px #ccc solid;
+        font-weight: bold;
+    }
+
+    table.quote-space tfoot tr th {
+        border-bottom: 1px #ccc solid;
+        text-align: left;
+    }
+
+</style>
+<h3>Project Summary</h3>
+<table class="table config">
+    <tr>
+        <th style="width: 120px">Legacy Fittings:</th>
+        <td style="width: 160px"><?php echo $figures['legacy_quantity']; ?></td>
+        <th style="width: 140px">Replacement Fittings:</th>
+        <td ><?php echo $figures['led_quantity']; ?></td>
+    </tr>
+    <tr>
+        <th>Legacy kWh:</th>
+        <td><?php echo number_format($forecast[1][0] / $project->getFuelTariff(), 2); ?></td>
+        <th>Replacement kWh:</th>
+        <td><?php echo number_format($forecast[1][1] / $project->getFuelTariff(), 2); ?></td>
+    </tr>
+    <tr>
+        <th>Energy Savings:</th>
+        <td><?php echo number_format($figures['kwhYear']);?> kWh (<?php echo (100-round((($forecast[1][1]/$forecast[1][0])*100),2)). '%'; ?>)</td>
+        <th>Project ROI:</th>
+        <td>Year <?php echo $this->wordify($figures['payback_year']); ?></td>
+    </tr>
+    <tr>
+        <th>Carbon Savings:</th>
+        <td><?php echo number_format($forecast[1][7], 2);?> tonnes</td>
+        <th>&nbsp;</th>
+        <td>&nbsp;</td>
+    </tr>
+    <tr>
+        <td colspan="4">&nbsp;</td>
+    </tr>
+    <tr>
+        <th>Product Cost:</th>
+        <td>&#163;<?php echo number_format($figures['cost_led'], 2);?></td>
+        <th>Services Cost:</th>
+        <td>&#163;<?php echo number_format($figures['cost_service'], 2);?></td>
+    </tr>
+    <tr>
+        <th>Installation Cost:</th>
+        <td>&#163;<?php echo number_format($figures['cost_install'], 2);?></td>
+        <th>Delivery Cost:</th>
+        <td>&#163;<?php echo number_format($figures['cost_delivery'], 2);?></td>
+    </tr>
+    <tr>
+        <th>Management Cost:</th>
+        <td>&#163;<?php echo number_format($figures['cost_management'], 2);?></td>
+        <th>Overheads Cost:</th>
+        <td>&#163;<?php echo number_format($figures['cost_overheads'], 2);?></td>
+    </tr>
+    <tr>
+        <th>Total Cost:</th>
+        <td>&#163;<?php echo number_format($figures['cost'], 2);?></td>
+        <th></th>
+        <td></td>
+    </tr>
+</table>
+<br />
+<?php 
+$notes = json_decode($project->getNotes(), true);
+if (!empty($project) && !empty($notes)) { ?>
+<h3>Project Notes</h3>
+<table class="quote-space">
+    <tbody>
+<?php
+    foreach($notes as $note) {
+    ?>
+    <tr style="vertical-align: top">
+        <td colspan="3"><?php echo $note; ?></td>
+    </tr>
+    <?php
+    }
+?>    </tbody>
+</table>
+<?php } ?>
+
+<h3>Project Summary By Space</h3>
+<?php
+   if (!empty($breakdown)) {
+       $first = true;
+       foreach ($breakdown as $buildingId=>$building) {
+           foreach ($building['spaces'] as $spaceId=>$space) {
+?>
+<h4 class="underline"><?php echo $space['root'] === true ? 'Non-Space Specific' : $space['name']; ?></h4>
+<table class="quote-space">
+    <thead>
+        <tr>
+            <th class="left" >Product</th>
+            <th class="right" style="width: 90px">Qty</th>
+            <th class="right" style="width: 90px">CPU (&#163;)</th>
+            <th class="right" style="width: 90px">Total (&#163;)</th>
+        </tr>
+    </thead>   
+    <tbody>
+<?php
+               foreach ($space['products'] as $systemId=>$system) {
+                    switch ($system[2]) {
+                       case 1: case 2: case 3: case 500:
+?>
+        <tr>
+            <td><?php echo $system[4]; ?></td>
+            <td class="right"><?php echo $system[5]; ?></td>
+            <td class="right"><?php echo number_format($system[0], 2); ?></td>
+            <td class="right"><?php echo number_format($system[1], 2); ?></td>
+        </tr>
+ <?php
+                        break;
+                    }
+               }
+?>
+    </tbody>
+</table>
+<?php
+           }
+       }
+   }
+?>

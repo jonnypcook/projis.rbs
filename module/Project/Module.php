@@ -44,8 +44,13 @@ class Module
                 'DocumentService' => function($sm) {
                     $config = $sm->get('Config');        
                     return new DocumentService($config['googleApps']['drive']['location'], $sm->get('Doctrine\ORM\EntityManager'), $config['dirs']);
+                },
+                'LiteIpService' => function($sm) {
+                    $config = $sm->get('Config');
+
+                    return new \Application\Service\LiteIpService($config['liteip'], $sm->get('Doctrine\ORM\EntityManager'));
                 }
-            ),
+            )
             
         );
     }

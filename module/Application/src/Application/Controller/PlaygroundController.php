@@ -25,7 +25,45 @@ class PlaygroundController extends AuthController
 
         return $this->getView();
     }
-    
+
+    public function reloadLiteipAction() {
+        if (!$this->isGranted('admin.playground')) {
+            throw new \Exception('Illegal access');
+        }
+
+        $projects = $this->params()->fromQuery('projects', false);
+        $drawings = $this->params()->fromQuery('drawings', false);
+        $devices = $this->params()->fromQuery('devices', false);
+
+        $liteIPService = $this->getLiteIpService();
+
+        if ($projects !== false) {
+            echo 'Projects synchronized<br>';
+            $liteIPService->synchronizeProjectsData();
+        }
+
+        if ($drawings !== false) {
+            echo 'Drawings synchronized<br>';
+            $liteIPService->synchronizeDrawingsData();
+        }
+
+        if ($devices !== false) {
+            echo 'Devices synchronized<br>';
+            $liteIPService->synchronizeDevicesData();
+        }
+
+        die();
+    }
+
+    /**
+     * get LiteIp Service
+     * @return \Application\Service\LiteIpService
+     */
+    public function getLiteIpService() {
+        return $this->getServiceLocator()->get('LiteIpService');
+    }
+
+
     public function routemappingAction() {
         $this->setCaption('Google Route Mapping Demo');
         

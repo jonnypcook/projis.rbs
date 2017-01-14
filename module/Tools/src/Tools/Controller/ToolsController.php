@@ -28,7 +28,7 @@ class ToolsController extends AuthController
         //$this->getView()->setVariable('form', $form);
         return $this->getView();
     }
-    
+
     public function rpQuickCalculateAction() {
         try {
             

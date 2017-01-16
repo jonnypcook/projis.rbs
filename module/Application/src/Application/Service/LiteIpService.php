@@ -191,7 +191,7 @@ class LiteIpService
      * @throws \Doctrine\ORM\OptimisticLockException
      * @throws \Doctrine\ORM\TransactionRequiredException
      */
-        public function synchronizeDevicesData($drawingId = false, $projectId = false) {
+    public function synchronizeDevicesData($drawingId = false, $projectId = false) {
         $em = $this->getEntityManager();
         $sql = "SELECT d FROM Application\Entity\LiteipDrawing d";
         if (!empty($drawingId)) {

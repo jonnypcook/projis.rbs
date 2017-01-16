@@ -158,6 +158,7 @@ return array(
             'Application\Controller\Playground' => 'Application\Controller\PlaygroundController',
             'Application\Controller\Competitor' => 'Application\Controller\CompetitorController',
             'Application\Controller\Activity' => 'Application\Controller\ActivityController',
+            'Application\Controller\Console' => 'Application\Controller\ConsoleController',
         ),
     ),
     'view_manager' => array(
@@ -181,9 +182,20 @@ return array(
     'console' => array(
         'router' => array(
             'routes' => array(
+                'synchronize' => array(
+                    'options' => array(
+                        'route'    => 'synchronizeliteip [rbs|all|non-rbs]:mode [--verbose|-v] [-t|--test]',
+                        'defaults' => array(
+                            'controller' => 'Application\Controller\Console',
+                            'action'     => 'synchronizeliteip'
+                        )
+                    )
+                )
             ),
         ),
     ),
+
+
     // create the navigation
     'navigation' => array(
         'default' => array(

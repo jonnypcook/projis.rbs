@@ -131,7 +131,6 @@ class LiteIpService
         if ($response->getStatusCode() === 200) {
             $projects = json_decode($response->getBody(), true);
             foreach ($projects as $project) {
-                print_r($project) . "\r\n";
                 $liteIpProject = $em->find('Application\Entity\LiteipProject', $project['ProjectID']);
                 if (!($liteIpProject instanceof LiteipProject)) {
                     $liteIpProject = new LiteipProject();

@@ -41,6 +41,9 @@ class ConsoleController extends AbstractActionController
 
         $liteIPService = $this->getLiteIpService();
 
+        $liteIPService->synchronizeProjectsData(true);
+        $liteIPService->synchronizeDrawingsData();
+
         $em = $this->getEntityManager();
 
         // get projects data for grouping
@@ -53,7 +56,7 @@ class ConsoleController extends AbstractActionController
         $projects = $qb->getQuery()->getResult();
 
         foreach ($projects as $project) {
-            $this->addOutputMessage('Synchronizing: ' . $project->getProjectDescription(), $verbose);
+            $this->addOutputMessage('Synchronizing: ' . (empty($project->getProjectDescription()) ? 'undefined' : $project->getProjectDescription()) . ' (' . $project->getProjectID() . ' - ' . $project->getPostCode() . ')', $verbose);
             $liteIPService->synchronizeDevicesData(false, $project->getProjectID());
         }
 

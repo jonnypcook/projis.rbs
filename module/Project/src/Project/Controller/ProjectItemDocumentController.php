@@ -1374,6 +1374,127 @@ class ProjectitemdocumentController extends ProjectSpecificController
         
         return $response;
     }
+
+    /**
+     * export system model csv action
+     * @return \Zend\Mvc\Controller\AbstractController
+     */
+    function exportEmergencyReportAction() {
+        $data[] = array(
+            '"Status"',
+            '"Fittings"',
+            '"Healthy"',
+            '"Faults"',
+            '"Warnings"',
+        );
+
+        $pdf = $this->params()->fromQuery('pdf', false);
+
+        $args = array();
+
+        $em = $this->getEntityManager();
+        $now = new \DateTime('now');
+        $qb = $em->createQueryBuilder();
+        $qb->select('d')
+            ->from('Application\Entity\LiteipDevice', 'd')
+            ->innerJoin('d.drawing', 'dr')
+            ->where('dr.project=?1')
+            ->andWhere('d.IsE3=true')
+            ->setParameter(1, $this->getProject()->getLipProject()->getProjectID());
+        $devices = $qb->getQuery()->getResult();
+
+        $summary = array(
+            'total' => 0,
+            'errors' => 0,
+            'warnings' => 0,
+            'breakdown' => array(),
+            'nofault' => array('cnt' => 0, 'warn' => 0)
+        );
+
+        $breakdown = array();
+
+        foreach ($devices as $device) {
+            $timestamp = empty($device->getLastE3StatusDate()) ? 0 : $device->getLastE3StatusDate()->getTimestamp();
+            $diff = $now->getTimestamp() - $timestamp;
+
+            $summary['total']++;
+            $warn = floor($diff / (60 * 60 * 24)) > 0;
+            $err = $device->getStatus() && $device->getStatus()->isFault();
+            $breakdown[preg_replace('/[.][^.]+$/', '', $device->getDrawing()->getDrawing())][] = array(
+                $device->getDeviceSN(),
+                $err ? $device->getStatus()->getDescription() : 'No Fault',
+                empty($device->getLastE3StatusDate()) ? '"Unknown"' : '"' . $device->getLastE3StatusDate()->format('d/m/Y H:i:s') .'"'
+            );
+
+            if ($err) {
+                $summary['errors'] ++;
+                if (empty($summary['breakdown'][$device->getStatus()->getDescription()])) {
+                    $summary['breakdown'][$device->getStatus()->getDescription()] = array('err' => 0, 'warn' => 0);
+                }
+
+                $summary['breakdown'][$device->getStatus()->getDescription()]['err']++;
+
+                if ($warn) {
+                    $summary['breakdown'][$device->getStatus()->getDescription()]['warn']++;
+                }
+            } else {
+                $summary['nofault']['cnt']++;
+                if ($warn) {
+                    $summary['nofault']['warn']++;
+                }
+            }
+
+            if ($warn) {
+                $summary['warning']++;
+            }
+
+        }
+
+        $filename = 'Emergency Report - ' . preg_replace('/[^a-z0-9-_ ]+/i', '', $this->getProject()->getName()) . ' ' . date('dmyHis');
+        if ($pdf) {
+            $pdfVars = array(
+                'resourcesUri' => getcwd().DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR,
+                'project' => $this->getProject(),
+                'summary' => $summary,
+                'breakdown' => $breakdown,
+                'footer' => array (
+                    'pages'=>true
+                ),
+            );
+
+            $pdf = new PdfModel();
+            $pdf->setOption('paperSize', 'pdf');
+            $pdf->setOption('filename', $filename . '.pdf');
+
+
+            $pdf->setVariables($pdfVars);
+            $pdf->setTemplate('project/projectitemdocument/telemetry/emergency');
+
+            return $pdf;
+        } else {
+            if (!empty($summary['breakdown'])) {
+                foreach ($summary['breakdown'] as $type => $stats) {
+                    $data[] = array($type, $stats['err'], 0, $stats['err'], $stats['warn']);
+                }
+            }
+            $data[] = array('No Fault', $summary['nofault']['cnt'], $summary['nofault']['cnt'], 0, $summary['nofault']['warn']);
+            $data[] = array('Total', $summary['total'], $summary['total'] - $summary['errors'], $summary['errors'], $summary['warning']);
+
+            if (!empty($breakdown)) {
+                $data[] = array();
+                $data[] = array('"Floor"', '"Serial"', '"Status"', '"Last Status Report Date"');
+                foreach ($breakdown as $drawingName => $drawingItems) {
+                    foreach ($drawingItems as $bdData) {
+                        $data[] = array('"' . $drawingName . '"', $bdData[0], $bdData[1], $bdData[2]);
+                    }
+                }
+            }
+            $response = $this->prepareCSVResponse($data, $filename . '.csv');
+
+            return $response;
+        }
+
+    }
     
     
     public function deliveryNoteGenerateAction() {

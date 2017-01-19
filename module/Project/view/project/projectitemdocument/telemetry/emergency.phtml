@@ -1,0 +1,159 @@
+<?php
+
+
+?>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <title>8point3 LED document</title>
+
+    <?php
+    echo $this->partial('partial/project/docs/css.phtml');
+    ?>
+</head>
+<body>
+<?php
+    echo $this->partial('partial/project/docs/pages.phtml');
+?>
+<style>
+    .table.config th {
+        font-weight: bold;
+        text-align: left;
+        padding-right: 10px
+    }
+
+    .table.config td {
+        font-weight: normal;
+        text-align: left;
+        padding-right: 50px
+    }
+
+    table.quote-space {
+        width: 100%;
+        border-spacing: 0;
+        margin-bottom: 30px;
+    }
+
+    table.quote-space thead {
+        border-bottom: 1px #ccc solid;
+    }
+
+    table.quote-space tbody tr td {
+        border-bottom: 1px #ccc solid;
+    }
+
+    table.quote-space tfoot tr td {
+        border-bottom: 1px #ccc solid;
+        font-weight: bold;
+    }
+
+    table.quote-space tfoot tr th {
+        border-bottom: 1px #ccc solid;
+        text-align: left;
+    }
+
+    table.quote-space .right {
+        text-align: right;
+    }
+
+    table.quote-space .left {
+        text-align: left;
+    }
+
+</style>
+<h3>RBS Emergency Report</h3>
+<h4>Branch: <?php echo $project->getName(); ?><br>Address:  <?php echo $project->getAddress()->assemble(); ?></h4>
+
+<strong>Summary:</strong>
+<table class="quote-space">
+    <thead>
+    <tr>
+        <th class="left">Status</th>
+        <th class="right">Fittings</th>
+        <th class="right">Healty</th>
+        <th class="right">Faults</th>
+        <th class="right">Warnings</th>
+    </tr>
+    </thead>
+    <tbody>
+    <?php
+    if (!empty($summary['breakdown'])) {
+        foreach ($summary['breakdown'] as $type => $stats) {
+            echo "<tr><td>{$type}</td><td class=\"right\">{$stats['err']}</td><td class=\"right\">0</td><td class=\"right\">{$stats['err']}</td><td class=\"right\">{$stats['warn']}</td></tr>";
+        }
+    }
+
+    echo "<tr><td>No Fault</td><td class=\"right\">{$summary['nofault']['cnt']}</td><td class=\"right\">{$summary['nofault']['cnt']}</td><td class=\"right\">0</td><td class=\"right\">{$summary['nofault']['warn']}</td></tr>";
+    echo "<tr><td>Total</td><td class=\"right\">{$summary['total']}</td><td class=\"right\">" . ($summary['total'] - $summary['errors']) ."</td><td class=\"right\">{$summary['errors']}</td><td class=\"right\">{$summary['warning']}</td></tr>";
+    ?>
+    </tbody>
+</table>
+<?php
+if (!empty($breakdown)) {
+    $data[] = array();
+    $data[] = array('"Floor"', '"Serial"', '"Status"', '"Last Status Report Date"');
+    foreach ($breakdown as $drawingName => $drawingItems) {
+        echo '<div class="break-before"></div>';
+        echo '<h3>Floor Summary</h3>';
+        echo '<h4>Name: ' . $drawingName .'</h4>';
+        ?>
+<table class="quote-space">
+    <thead>
+    <tr>
+        <th class="left">Device SN</th>
+        <th class="left">Status</th>
+        <th class="right">Last Status Report Date</th>
+    </tr>
+    </thead>
+    <tbody><?php
+        foreach ($drawingItems as $bdData) {
+            echo '<tr><td>' . $bdData[0] . '</td><td >' . $bdData[1] . '</td><td class="right">' . trim($bdData[2], '"') . '</td></tr>';
+        } ?>
+    </tbody>
+</table> <?php
+    }
+}
+?>
+<div class="break-before"></div>
+<h3>Summary Of Terms:</h3>
+<p>The wireless system will report the status of the emergency luminaire it is attached to.</p>
+<h4>Status Types:</h4>
+<table class="quote-space">
+    <thead>
+    <tr>
+        <th class="left" style="width: 120px">Status</th>
+        <th class="left">Explanation</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr><td>No Fault:</td><td>Emergency luminaire is healthy and has not reported any faults.</td></tr>
+    <tr><td>Unknown:</td><td>The status of the emergency luminaire has not been collected by the tablet.</td></tr>
+<tr><td>Lamp Fault:</td><td>In the case of a lamp fault when the lamp is replaced the fault will continue to show until the unit
+either conducts another functional self-test (one week later) or the permanent supply is
+momentarily interrupted. Either of these actions will force the unit to switch over to
+emergency operation and allow the lamp failure detect circuit to re-check the status of the lamp.</td></tr>
+<tr><td>Charge Fault:</td><td>Incorrect charge current</td></tr>
+<tr><td>Battery Fault:</td><td>Shown if the battery fails to achieve its full duration. When the battery is replaced the status will
+immediately change to "No Fault" and to confirm the new battery status a second full duration
+test will be carried out automatically after 20 hours when the unit enters the trickle charge mode.
+Note: If during battery replacement the battery and the permanent supply are disconnected together the unit will lose its
+memory. In this instance the unit would go through a further commissioning test.</td></tr>
+</tbody>
+</table>
+<h4>Summary Table Column Headings:</h4>
+<table class="quote-space">
+    <thead>
+    <tr>
+        <th style="width: 120px" class="left">Status</th>
+        <th class="left">Explanation</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr><td>Fittings:</td><td>The total number of emergency luminaires being reported upon.</td></tr>
+    <tr><td>Healthy:</td><td>The number of emergency luminaires that are NOT showing a fault status.</td></tr>
+    <tr><td>Faults:</td><td>The number of emergency luminaires that ARE showing a fault status.</td></tr>
+    <tr><td>Warnings:</td><td>The tablet has not received data from the emergency luminaire in the last day.</td></tr>
+    </tbody>
+</table>
+</body>
+</html>

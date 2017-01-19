@@ -111,7 +111,7 @@ class Project extends EntityRepository
                         $queryBuilder->add('orderBy', 'p.name '.$dir);
                         break;
                     case 'status':
-                        $queryBuilder->add('orderBy', 's.statusId '.$dir);
+                        $queryBuilder->add('orderBy', 'p.weighting '.$dir);
                         break;
                 }
             }

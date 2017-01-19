@@ -257,7 +257,7 @@ class ProjectSpecificController extends AuthController
             )
         );
 
-        if ($this->getProject()->getTelemetry() && $this->getProject()->getLipProject()) {
+        if ($this->getProject()->getLipProject()) {
 //            $url = 'http://portal.liteip.com/8p3/8p3login.aspx?E=' . $project->getTelemetry()->getUser() . '&P=' . $project->getTelemetry()->getPassword();
 //            $pages [] = array(
 //                'active'=>($standardMode && ($action=='telemetry')),

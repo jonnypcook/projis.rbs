@@ -6,6 +6,7 @@ var Script = function () {
     var sectionErrors = $('#emergency_errors_section');
     var sectionWarnings = $('#emergency_warnings_section');
     var errorCount = $('#errorCount');
+    var noFaultCount = $('#noFaultCount');
     var warningCount = $('#warningCount');
     var devicesCount = $('#devicesCount');
     var synchronizeBtn = $('#btn-synchronize');
@@ -39,6 +40,7 @@ var Script = function () {
                             if (obj.err !== true) {
                                 tableErrors.empty();
                                 errorCount.text(obj.report.count.errors);
+                                noFaultCount.text(obj.report.count.nofault);
                                 warningCount.text(obj.report.count.warnings);
                                 devicesCount.text(obj.report.count.devices);
 

@@ -305,6 +305,7 @@ class ProjectItemTelemetryController extends ProjectSpecificController
             $warnings = array();
             $warningCount = 0;
             $errorCount = 0;
+            $noFaultCount = 0;
             $synchronize = $this->params()->fromQuery('synchronize', false);
 
 
@@ -330,7 +331,7 @@ class ProjectItemTelemetryController extends ProjectSpecificController
             foreach ($devices as $device) {
 
                 $devicesPolled++;
-                if ($device->getStatus()->isFault()) {
+                if ($device->getStatus() && $device->getStatus()->isFault()) {
                     $errorCount++;
                     $errors[$device->getDrawing()->getDrawing(true)][] =  array(
                         $device->getDeviceID(),
@@ -338,11 +339,13 @@ class ProjectItemTelemetryController extends ProjectSpecificController
                         $device->getStatus()->getDescription(),
                         empty($device->getLastE3StatusDate()) ? '' : $device->getLastE3StatusDate()->format('d/m/Y H:i:s')
                     );
+                } else {
+                    $noFaultCount ++;
                 }
 
                 $timestamp = empty($device->getLastE3StatusDate()) ? 0 : $device->getLastE3StatusDate()->getTimestamp();
                 $diff = $now->getTimestamp() - $timestamp;
-                if(floor($diff / (60 * 60 * 24)) > 0) { // if not tested for 24 hours
+                if($device->isIsE3() && (floor($diff / (60 * 60 * 24)) > 0)) { // if not tested for 24 hours
                     $warningCount++;
                     $warnings[$device->getDrawing()->getDrawing(true)][] = array(
                         $device->getDeviceID(),
@@ -358,6 +361,7 @@ class ProjectItemTelemetryController extends ProjectSpecificController
                 'warnings' => $warnings,
                 'count' => array (
                     'errors' => $errorCount,
+                    'nofault' => $noFaultCount,
                     'warnings' => $warningCount,
                     'devices' => $devicesPolled
                 )

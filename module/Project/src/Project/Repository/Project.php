@@ -49,7 +49,8 @@ class Project extends EntityRepository
             ->join('p.status', 's')
             ->where('p.client=?1')
             ->setParameter(1, $client_id);
-        
+
+
         /**
          * check for project or job parameter
          */
@@ -64,6 +65,16 @@ class Project extends EntityRepository
             $queryBuilder
                 ->andWhere('p.type != 3')
                 ->andWhere('(s.job=1) OR (s.job=0 AND s.weighting=1 AND s.halt=1)');
+        } elseif (!empty($params['uncommissioned'])) {
+            $queryBuilder
+                ->andWhere('p.cancelled!=1')
+                ->andWhere('p.type != 3')
+                ->andWhere('p.lipProject IS NULL');
+        } elseif (!empty($params['commissioned'])) {
+            $queryBuilder
+                ->andWhere('p.type != 3')
+                ->andWhere('p.cancelled!=1')
+                ->andWhere('p.lipProject IS NOT NULL');
         } elseif (!empty($params['trial'])) {
             $queryBuilder
                 ->andWhere('p.type = 3');

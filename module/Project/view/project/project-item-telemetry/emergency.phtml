@@ -16,9 +16,11 @@ $this->inlineScript()
                     </span>
                 </div>
                 <div class="widget-body relative">
-                    <div>
-                        <button class="btn btn-default pull-right" id="btn-synchronize">Synchronize Data <i class="icon-refresh"></i></button>
-                    </div>
+<!--                    <form action="/client---><?php //echo $project->getClient()->getClientId(); ?><!--/project---><?php //echo $project->getProjectId(); ?><!--/telemetry/%a/" class="form-nomargin">-->
+                        <div>
+                            <button class="btn btn-default pull-right" id="btn-synchronize">Synchronize Data <i class="icon-refresh"></i></button>
+                        </div>
+<!--                    </form>-->
                     <div class="space10"></div>
 
                     <table class="table table-bordered table-striped" id="emergency_summary_tbl" data-request-url="/client-<?php echo $project->getClient()->getClientId(); ?>/project-<?php echo $project->getProjectId(); ?>/telemetry/%a/">
@@ -26,6 +28,10 @@ $this->inlineScript()
                         <tr>
                             <th style="width: 200px">Error count</th>
                             <td id="errorCount">0</td>
+                        </tr>
+                        <tr>
+                            <th >No Fault</th>
+                            <td id="noFaultCount">0</td>
                         </tr>
                         <tr>
                             <th>Warning count</th>

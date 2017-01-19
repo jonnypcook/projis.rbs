@@ -46,7 +46,7 @@ class ClientitemController extends ClientSpecificController
             'auto'=> true,
         ));
         
-        $query = $em->createQuery('SELECT count(p) FROM Project\Entity\Project p JOIN p.status s WHERE p.client='.$this->getClient()->getClientId().' AND p.type != 3 AND ((s.job=1) OR (s.job=0 AND s.weighting=1 AND s.halt=1))');
+        $query = $em->createQuery('SELECT count(p) FROM Project\Entity\Project p JOIN p.status s WHERE p.client='.$this->getClient()->getClientId().' AND p.type != 3 AND p.lipProject IS NOT NULL');
         $jobCount = $query->getSingleScalarResult();
         
         $query = $em->createQuery('SELECT count(p) FROM Project\Entity\Project p JOIN p.status s WHERE p.client='.$this->getClient()->getClientId().' AND p.type = 3');
@@ -380,7 +380,7 @@ class ClientitemController extends ClientSpecificController
         if (!$this->request->isXmlHttpRequest()) {
             throw new \Exception('illegal request type');
         }
-        
+
 
         return $this->getProjectsData(1);
     }
@@ -563,13 +563,15 @@ class ClientitemController extends ClientSpecificController
         
         switch ($mode) {
             case 2:
-                $params['job'] = true;
+                $params['commissioned'] = true;
+//                $params['job'] = true;
                 break;
             case 3:
                 $params['trial'] = true;
                 break;
             default:
-                $params['project'] = true;
+//                $params['project'] = true;
+                $params['uncommissioned'] = true;
                 break;
         }
         
@@ -620,7 +622,9 @@ class ClientitemController extends ClientSpecificController
         } else {
             foreach ($paginator as $page) {
                 //$url = $this->url()->fromRoute('client',array('id'=>$page->getclientId()));
-                if ($page->getWeighting()<10) {
+                if ($params['commissioned'] === true) {
+                    $statusCls = 'success';
+                } elseif ($page->getWeighting()<10) {
                    $statusCls = 'danger';
                 } elseif ($page->getWeighting()<30) {
                     $statusCls = 'warning';
@@ -632,18 +636,19 @@ class ClientitemController extends ClientSpecificController
                     $statusCls = 'success';
                 }
 
+                $weighting = $params['commissioned'] ? 100 : $page->getWeighting();
                 $statusHtml = $page->getCancelled()?'<span style="width: 95%" class="label label-important label-mini">Cancelled</span>'
-                        :'<span style="position: absolute; padding-top:12px">'.$page->getWeighting().'%</span><div class="progress progress-'.$statusCls.'"><div style="width: '.$page->getWeighting().'%;" class="bar"></div></div>';
+                        :'<span style="position: absolute; padding-top:12px">'. $weighting .'%</span><div class="progress progress-'.$statusCls.'"><div style="width: '. $weighting .'%;" class="bar"></div></div>';
 
 
 
                 $data['aaData'][] = array (
                     '<a href="javascript:" class="action-'.($params['job']?'job':'project').'-edit"  pid="'.$page->getProjectId().'">'.str_pad($page->getClient()->getClientId(), 5, "0", STR_PAD_LEFT).'-'.str_pad($page->getProjectId(), 5, "0", STR_PAD_LEFT).'</a>',
                     $page->getName(),
-                    0,
+                    'n\a',
                     $statusHtml,//'<span style="width: 95%" class="label label-'.$statusCls.' label-mini">'.ucwords($statusText).'</span>',
                     '<button class="btn btn-primary action-'.($params['job']?'job':'project').'-edit" pid="'.$page->getProjectId().'" ><i class="icon-pencil"></i></button>&nbsp;'
-                    . ($params['job']?'':'<button pid="'.$page->getProjectId().'" class="btn btn-danger action-project-delete"><i class="icon-trash "></i></button>&nbsp;'
+                    . ($params['commissioned']?'':'<button pid="'.$page->getProjectId().'" class="btn btn-danger action-project-delete"><i class="icon-trash "></i></button>&nbsp;'
                             . '<button class="btn btn-success action-client-edit" pid="'.$page->getProjectId().'" ><i class="icon-copy"></i></button>'),
                 );
             } 

@@ -563,15 +563,13 @@ class ClientitemController extends ClientSpecificController
         
         switch ($mode) {
             case 2:
-                $params['commissioned'] = true;
-//                $params['job'] = true;
+                $params['job'] = true;
                 break;
             case 3:
                 $params['trial'] = true;
                 break;
             default:
-//                $params['project'] = true;
-                $params['uncommissioned'] = true;
+                $params['project'] = true;
                 break;
         }
         
@@ -648,7 +646,7 @@ class ClientitemController extends ClientSpecificController
                     'n\a',
                     $statusHtml,//'<span style="width: 95%" class="label label-'.$statusCls.' label-mini">'.ucwords($statusText).'</span>',
                     '<button class="btn btn-primary action-'.($params['job']?'job':'project').'-edit" pid="'.$page->getProjectId().'" ><i class="icon-pencil"></i></button>&nbsp;'
-                    . ($params['commissioned']?'':'<button pid="'.$page->getProjectId().'" class="btn btn-danger action-project-delete"><i class="icon-trash "></i></button>&nbsp;'
+                    . ($params['job']?'':'<button pid="'.$page->getProjectId().'" class="btn btn-danger action-project-delete"><i class="icon-trash "></i></button>&nbsp;'
                             . '<button class="btn btn-success action-client-edit" pid="'.$page->getProjectId().'" ><i class="icon-copy"></i></button>'),
                 );
             } 

@@ -62,7 +62,7 @@
 
 </style>
 <h3>RBS Emergency Report</h3>
-<h4>Branch: <?php echo $project->getName(); ?><br>Address:  <?php echo $project->getAddress()->assemble(); ?></h4>
+<h4>Branch: <?php echo $project->getName(); ?><br>Address:  <?php if ($project->getAddress()) echo $project->getAddress()->assemble(); ?></h4>
 
 <strong>Summary:</strong>
 <table class="quote-space">

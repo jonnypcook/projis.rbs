@@ -580,11 +580,13 @@ class ProjectitemexportController extends ProjectSpecificController
                     $billitems [] = "{$extSpaceId}, {$productId}, {$cpu}, {$result['ppu']}, {$result['quantity']}, 0";
                 }
 
-                $query = 'INSERT INTO `System` (`space_id`, `product_id`, `cpu`, `ppu`, `quantity`, `legacyQuantity`) VALUES (' . implode('), (', $billitems) . ')';
-                if (mysqli_query($link, $query) !== true) {
-                    throw new \Exception('System items could not be created: ' . mysqli_error($link));
+                if (!empty($billitems)) {
+                    $query = 'INSERT INTO `System` (`space_id`, `product_id`, `cpu`, `ppu`, `quantity`, `legacyQuantity`) VALUES (' . implode('), (', $billitems) . ')';
+                    if (mysqli_query($link, $query) !== true) {
+                        throw new \Exception('System items could not be created: ' . mysqli_error($link));
+                    }
                 }
-                
+
                 $data = array('err'=>false, 'url' => $config['projisExporter']['app'] . 'client-' . $clientId . '/project-' . $extProjectId);
 
             } catch (\Exception $ex) {

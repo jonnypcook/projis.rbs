@@ -82,7 +82,7 @@ $this->inlineScript()
                         Branch Address
                     </td>
                     <td><?php
-                        echo $project->getAddress()->assemble();
+                        echo $project->getAddress() ? $project->getAddress()->assemble() : $project->getLipProject()->getPostCode();
                         ?>
                     </td>
                 </tr>

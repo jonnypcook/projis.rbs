@@ -195,7 +195,7 @@ return [
 
                 [
                     'controller' => 'Project\Controller\ProjectItemDocumentController',
-                    'actions'    => ['explorer', 'explorerscan', 'exportemergencyreport'],
+                    'actions'    => ['explorer', 'explorerscan'],
                     'permissions'      => ['project.explorer.read']
                 ],
 

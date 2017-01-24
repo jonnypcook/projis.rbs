@@ -358,7 +358,24 @@ class BranchItemController extends AuthController
 
 
     public function indexAction() {
-        return $this->getView();
+        $this->setCaption('Branch Dashboard');
+
+        $em = $this->getEntityManager();
+        $query = $em->createQuery('SELECT count(d) '
+            . 'FROM Application\Entity\LiteipDevice d '
+            . 'JOIN d.drawing dr '
+            . 'WHERE '
+            . 'dr.project = ' . $this->getProject()->getLipProject()->getProjectID()
+        );
+        $deviceCount = $query->getSingleScalarResult();
+
+        $commissioned = $this->getProject()->hasState(101);
+        $installed = $this->getProject()->hasState(100);
+
+        return $this->getView()
+            ->setVariable('commissioned', $commissioned)
+            ->setVariable('installed', $installed)
+            ->setVariable('deviceCount', $deviceCount);
     }
 
     /**

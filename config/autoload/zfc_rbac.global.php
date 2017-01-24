@@ -188,11 +188,17 @@ return [
                  
                 // ProjectItemDocument
                 [
+                     'controller' => 'Project\Controller\ProjectItemDocumentController',
+                     'actions'    => ['exportemergencyreport'],
+                     'permissions'      => ['branch.read']
+                ],
+
+                [
                     'controller' => 'Project\Controller\ProjectItemDocumentController',
-                    'actions'    => ['explorer', 'explorerscan'],
+                    'actions'    => ['explorer', 'explorerscan', 'exportemergencyreport'],
                     'permissions'      => ['project.explorer.read']
                 ],
-                 
+
                 [
                     'controller' => 'Project\Controller\ProjectItemDocumentController',
                     'permissions'      => ['project.write']

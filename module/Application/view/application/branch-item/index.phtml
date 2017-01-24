@@ -1,0 +1,38 @@
+<?php
+$this->inlineScript()
+    ->appendFile('/assets/data-tables/jquery.dataTables.js')
+    ->appendFile('/assets/data-tables/DT_bootstrap.js')
+    ->appendFile('/js/forms/branch/dashboard.js');
+
+
+?><div class="row-fluid">
+    <div class="span12">
+        <!-- BEGIN ORDERED LISTS PORTLET-->
+        <div class="widget blue">
+            <div class="widget-title">
+                <h4><i class="icon-mobile-phone"></i> Devices</h4>
+                <span class="tools">
+                <a href="javascript:;" class="icon-chevron-down"></a>
+                </span>
+            </div>
+            <div class="widget-body relative">
+                <div id="locatorLoader" class="loader"></div>
+                <table class="table table-bordered table-striped" id="devices_tbl" data-request-url="/branch-<?php echo $project->getProjectId(); ?>/%a/">
+                    <thead>
+                    <tr>
+                        <th>Serial</th>
+                        <th >Emergency</th>
+                        <th >Status</th>
+                        <th >Floor</th>
+                        <th >Project</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- END ORDERED LISTS PORTLET-->
+
+    </div>
+</div>

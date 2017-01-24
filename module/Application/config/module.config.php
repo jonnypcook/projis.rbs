@@ -64,22 +64,51 @@ return array(
                          'action'   => 'index'
                      ),
                  ),
-             ), 
-            
+             ),
+
             'activity' => array(
-                 'type'    => 'segment',
-                 'options' => array(
-                     'route'    => '/activity[/][:action[/]]',
-                     'constraints' => array(
-                         'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
-                     ),
-                     'defaults' => array(
-                         'controller' => 'Application\Controller\Activity',
-                         'action'   => 'index'
-                     ),
-                 ),
-             ), 
-            
+                'type'    => 'segment',
+                'options' => array(
+                    'route'    => '/activity[/][:action[/]]',
+                    'constraints' => array(
+                        'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                    ),
+                    'defaults' => array(
+                        'controller' => 'Application\Controller\Activity',
+                        'action'   => 'index'
+                    ),
+                ),
+            ),
+
+            'branch-item' => array(
+                'type'    => 'segment',
+                'options' => array(
+                    'route'    => '/branch-[:id][/][:action[/]]',
+                    'constraints' => array(
+                        'id'     => '[0-9]+',
+                        'action' => '[a-zA-Z][a-zA-Z0-9_]*',
+                    ),
+                    'defaults' => array(
+                        'controller' => 'Application\Controller\BranchItem',
+                        'action'     => 'index',
+                    ),
+                ),
+            ),
+
+            'branches' => array(
+                'type'    => 'segment',
+                'options' => array(
+                    'route'    => '/branch[/][:action[/]]',
+                    'constraints' => array(
+                        'action' => '[a-zA-Z][a-zA-Z0-9_-]*',
+                    ),
+                    'defaults' => array(
+                        'controller' => 'Application\Controller\Branch',
+                        'action'   => 'index'
+                    ),
+                ),
+            ),
+
             'competitor' => array(
                  'type'    => 'segment',
                  'options' => array(
@@ -159,6 +188,8 @@ return array(
             'Application\Controller\Competitor' => 'Application\Controller\CompetitorController',
             'Application\Controller\Activity' => 'Application\Controller\ActivityController',
             'Application\Controller\Console' => 'Application\Controller\ConsoleController',
+            'Application\Controller\Branch' => 'Application\Controller\BranchController',
+            'Application\Controller\BranchItem' => 'Application\Controller\BranchItemController',
         ),
     ),
     'view_manager' => array(

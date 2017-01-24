@@ -64,8 +64,8 @@ class Client implements InputFilterAwareInterface
      * @ORM\Column(name="notes", type="text", nullable=true)
      */
     private $notes;
-    
-    
+
+
     /**
      * @var integer
      *

@@ -1,5 +1,6 @@
 var Script = function () {
     var self = $('#locator-container');
+    var imageTitle = $('#drawingTitle');
     var requestUrl = $('#fDrawingId').attr('data-request-url');
 
     var width = self.innerWidth(),
@@ -82,6 +83,7 @@ var Script = function () {
         $('#btn-show-serials').trigger('click');
     });
 
+
     /**
      * exposed drawDevices event
      */
@@ -90,14 +92,21 @@ var Script = function () {
             return;
         }
 
+        if (!!imageTitle) {
+            imageTitle.text(!!data.image ? '- ' + data.image.name + ' ( ' + data.image.selected + ' of ' + data.image.total + ' )' : '');
+        }
+
+
         imgSetup.width = data.width;
         imgSetup.height = data.height;
 
         $('#sel-device-view-mode').val(1); // reset view mode
+        $('#inp-show-serials').val('');
 
         // prepare canvas and device load
         resizeCanvas();
         removeAllDevices();
+        setStatus();
 
         imageObj.src = requestUrl.replace(/[%][a]/, 'drawingimage') + '?drawingId=' + data.drawingID;
 

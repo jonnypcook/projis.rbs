@@ -1380,15 +1380,12 @@ class ProjectitemdocumentController extends ProjectSpecificController
      * @return \Zend\Mvc\Controller\AbstractController
      */
     function exportEmergencyReportAction() {
-        $data[] = array(
-            '"Status"',
-            '"Fittings"',
-            '"Healthy"',
-            '"Faults"',
-            '"Warnings"',
-        );
-
         $pdf = $this->params()->fromQuery('pdf', false);
+        $warnings = $this->params()->fromQuery('warnings', true);
+        $warnings = !empty($warnings);
+
+
+
 
         $args = array();
 
@@ -1423,7 +1420,8 @@ class ProjectitemdocumentController extends ProjectSpecificController
             $breakdown[preg_replace('/[.][^.]+$/', '', $device->getDrawing()->getDrawing())][] = array(
                 $device->getDeviceSN(),
                 $err ? $device->getStatus()->getDescription() : 'No Fault',
-                empty($device->getLastE3StatusDate()) ? '"Unknown"' : '"' . $device->getLastE3StatusDate()->format('d/m/Y H:i:s') .'"'
+                empty($device->getLastE3StatusDate()) ? '"Unknown"' : '"' . $device->getLastE3StatusDate()->format('d/m/Y H:i:s') .'"',
+                $device->getStatus() ? $device->getStatus()->isFault() : false
             );
 
             if ($err) {
@@ -1445,7 +1443,7 @@ class ProjectitemdocumentController extends ProjectSpecificController
             }
 
             if ($warn) {
-                $summary['warning']++;
+                $summary['warnings']++;
             }
 
         }
@@ -1457,6 +1455,7 @@ class ProjectitemdocumentController extends ProjectSpecificController
                 'project' => $this->getProject(),
                 'summary' => $summary,
                 'breakdown' => $breakdown,
+                'warnings' => $warnings,
                 'footer' => array (
                     'pages'=>true
                 ),
@@ -1472,13 +1471,15 @@ class ProjectitemdocumentController extends ProjectSpecificController
 
             return $pdf;
         } else {
+            $data[] = $warnings ? array('"Status"','"Fittings"','"Healthy"','"Faults"','"Warnings"') : array('"Status"','"Fittings"','"Healthy"','"Faults"');
+
             if (!empty($summary['breakdown'])) {
                 foreach ($summary['breakdown'] as $type => $stats) {
-                    $data[] = array($type, $stats['err'], 0, $stats['err'], $stats['warn']);
+                    $data[] = $warnings ? array($type, $stats['err'], 0, $stats['err'], $stats['warn']) : array($type, $stats['err'], 0, $stats['err']);
                 }
             }
-            $data[] = array('No Fault', $summary['nofault']['cnt'], $summary['nofault']['cnt'], 0, $summary['nofault']['warn']);
-            $data[] = array('Total', $summary['total'], $summary['total'] - $summary['errors'], $summary['errors'], $summary['warning']);
+            $data[] = $warnings ? array('No Fault', $summary['nofault']['cnt'], $summary['nofault']['cnt'], 0, $summary['nofault']['warn']) : array('No Fault', $summary['nofault']['cnt'], $summary['nofault']['cnt'], 0);
+            $data[] = $warnings ? array('Total', $summary['total'], $summary['total'] - $summary['errors'], $summary['errors'], $summary['warnings']) : array('Total', $summary['total'], $summary['total'] - $summary['errors'], $summary['errors']);
 
             if (!empty($breakdown)) {
                 $data[] = array();

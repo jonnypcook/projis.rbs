@@ -16,6 +16,10 @@
     echo $this->partial('partial/project/docs/pages.phtml');
 ?>
 <style>
+    .error {
+        color: #e00;
+    }
+    
     .table.config th {
         font-weight: bold;
         text-align: left;
@@ -72,19 +76,24 @@
         <th class="right">Fittings</th>
         <th class="right">Healty</th>
         <th class="right">Faults</th>
+<?php if ($warnings) { ?>
         <th class="right">Warnings</th>
+<?php } ?>
     </tr>
     </thead>
     <tbody>
     <?php
     if (!empty($summary['breakdown'])) {
         foreach ($summary['breakdown'] as $type => $stats) {
-            echo "<tr><td>{$type}</td><td class=\"right\">{$stats['err']}</td><td class=\"right\">0</td><td class=\"right\">{$stats['err']}</td><td class=\"right\">{$stats['warn']}</td></tr>";
+            echo "<tr><td>{$type}</td><td class=\"right\">{$stats['err']}</td><td class=\"right\">0</td><td class=\"right\">{$stats['err']}</td>" .
+                ($warnings ? "<td class=\"right\">{$stats['warn']}</td>" : "") . "</tr>";
         }
     }
 
-    echo "<tr><td>No Fault</td><td class=\"right\">{$summary['nofault']['cnt']}</td><td class=\"right\">{$summary['nofault']['cnt']}</td><td class=\"right\">0</td><td class=\"right\">{$summary['nofault']['warn']}</td></tr>";
-    echo "<tr><td>Total</td><td class=\"right\">{$summary['total']}</td><td class=\"right\">" . ($summary['total'] - $summary['errors']) ."</td><td class=\"right\">{$summary['errors']}</td><td class=\"right\">{$summary['warning']}</td></tr>";
+    echo "<tr><td>No Fault</td><td class=\"right\">{$summary['nofault']['cnt']}</td><td class=\"right\">{$summary['nofault']['cnt']}</td><td class=\"right\">0</td>" .
+        ($warnings ? "<td class=\"right\">{$summary['nofault']['warn']}</td>" : "") . "</tr>";
+    echo "<tr><td>Total</td><td class=\"right\">{$summary['total']}</td><td class=\"right\">" . ($summary['total'] - $summary['errors']) ."</td><td class=\"right\">{$summary['errors']}</td>" .
+        ($warnings ? "<td class=\"right\">{$summary['warning']}</td>" : "") . "</tr>";
     ?>
     </tbody>
 </table>
@@ -107,7 +116,7 @@ if (!empty($breakdown)) {
     </thead>
     <tbody><?php
         foreach ($drawingItems as $bdData) {
-            echo '<tr><td>' . $bdData[0] . '</td><td >' . $bdData[1] . '</td><td class="right">' . trim($bdData[2], '"') . '</td></tr>';
+            echo '<tr><td>' . $bdData[0] . '</td><td ' . ($bdData[3] ? 'class="error"' : '') . '>' . $bdData[1] . '</td><td class="right">' . trim($bdData[2], '"') . '</td></tr>';
         } ?>
     </tbody>
 </table> <?php
@@ -152,7 +161,9 @@ memory. In this instance the unit would go through a further commissioning test.
     <tr><td>Fittings:</td><td>The total number of emergency luminaires being reported upon.</td></tr>
     <tr><td>Healthy:</td><td>The number of emergency luminaires that are NOT showing a fault status.</td></tr>
     <tr><td>Faults:</td><td>The number of emergency luminaires that ARE showing a fault status.</td></tr>
+<?php if ($warnings) { ?>
     <tr><td>Warnings:</td><td>The tablet has not received data from the emergency luminaire in the last day.</td></tr>
+<?php } ?>
     </tbody>
 </table>
 </body>

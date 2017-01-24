@@ -32,8 +32,8 @@ class ProjectSpecificController extends AuthController
         
         if (empty($pid)) {
             return $this->redirect()->toRoute('clients');
-        } 
-        
+        }
+
         if (!($project=$this->getEntityManager()->getRepository('Project\Entity\Project')->findByProjectId($pid, array('client_id'=>$cid)))) {
             return $this->redirect()->toRoute('client', array('id'=>$cid));
         }
@@ -44,11 +44,12 @@ class ProjectSpecificController extends AuthController
         if ((($project->getStatus()->getJob()==1) || (($project->getStatus()->getWeighting()>=1) &&  ($project->getStatus()->getHalt()==1)))&& !$this->ignoreStatusRedirects) {
             return $this->redirect()->toRoute('job', array('cid'=>$cid, 'jid'=>$pid));
         }
-        
+
         // check privileges
         if ($project->getClient()->getUser()->getUserId()!=$this->identity()->getUserId()) {
             if (!$this->isGranted('admin.all')) {
-                if (!$this->isGranted('project.share') || ($this->isGranted('project.share') && ($project->getClient()->getUser()->getCompany()->getCompanyId() != $this->identity()->getCompany()->getCompanyId()))) {
+                if ((!$this->isGranted('branch.read') && !$this->isGranted('project.share')) || ($this->isGranted('project.share') && ($project->getClient()->getUser()->getCompany()->getCompanyId() != $this->identity()->getCompany()->getCompanyId()))) {
+
                     $passed = false;
                     foreach ($project->getCollaborators() as $user) {
                         if ($user->getUserId()==$this->identity()->getUserId()) {

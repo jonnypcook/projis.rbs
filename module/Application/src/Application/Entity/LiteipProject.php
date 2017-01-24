@@ -98,9 +98,9 @@ class LiteipProject implements InputFilterAwareInterface
     /**
      * @return string
      */
-    public function getPostCode()
+    public function getPostCode($clean = false)
     {
-        return $this->PostCode;
+        return ($clean !== true) ? $this->PostCode : str_replace('_', ' ', $this->PostCode);
     }
 
     /**

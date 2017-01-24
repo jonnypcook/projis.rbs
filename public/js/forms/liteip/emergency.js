@@ -41,7 +41,9 @@ var Script = function () {
                                 tableErrors.empty();
                                 errorCount.text(obj.report.count.errors);
                                 noFaultCount.text(obj.report.count.nofault);
-                                warningCount.text(obj.report.count.warnings);
+                                if (!!warningCount) {
+                                    warningCount.text(obj.report.count.warnings);
+                                }
                                 devicesCount.text(obj.report.count.devices);
 
                                 setEmergencyErrors(obj.report.errors);
@@ -90,6 +92,10 @@ var Script = function () {
     }
 
     function setEmergencyWarnings(warnings) {
+        if (!tableWarnings) {
+            return;
+        }
+
         tableWarnings.empty();
         if (!warnings || warnings.length === 0) {
             sectionWarnings.hide();

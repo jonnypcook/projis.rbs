@@ -1,6 +1,13 @@
 var Script = function () {
     // begin first table
-    var requestUrl = $('#fDrawingId').attr('data-request-url');
+    var drawingSelector = $('#fDrawingId');
+    var selectedDrawingIndex = 1;
+    var totalDrawingIndex = drawingSelector.find('option').length;
+    var requestUrl = drawingSelector.attr('data-request-url');
+    var nextButton = $('#btn-next-drawing');
+    var previousButton = $('#btn-prev-drawing');
+    var reloadButton = $('#btn-reload');
+    var drawingDetails = $('#drawing-details');
     var devicesTable = $('#devices_tbl').dataTable({
         "sDom": "<'row-fluid'<'span6'l><'span6'f>r>t<'row-fluid'<'span6'i><'span6'p>>",
         "sPaginationType": "bootstrap",
@@ -31,6 +38,48 @@ var Script = function () {
             // called at the end of table rendering
         }
     });
+
+    if (!!nextButton) {
+        nextButton.on('click', function() {
+            if (!totalDrawingIndex || totalDrawingIndex <= 1) {
+                return;
+            }
+
+            if (selectedDrawingIndex >= totalDrawingIndex) {
+                return;
+            }
+
+            selectedDrawingIndex++;
+            drawingSelector.find(':nth-child(' + selectedDrawingIndex + ')').prop('selected', true);
+            drawingSelector.trigger("change");
+        });
+    }
+
+    if (!!previousButton) {
+        previousButton.on('click', function() {
+            if (!totalDrawingIndex || totalDrawingIndex <= 1) {
+                return;
+            }
+
+            if (selectedDrawingIndex <= 1) {
+                return;
+            }
+
+            selectedDrawingIndex--;
+            drawingSelector.find(':nth-child(' + selectedDrawingIndex + ')').prop('selected', true);
+            drawingSelector.trigger("change");
+        });
+    }
+
+    if (!!reloadButton) {
+        reloadButton.on('click', function() {
+            if (!totalDrawingIndex) {
+                return;
+            }
+
+            drawingSelector.trigger("change");
+        });
+    }
 
     $(document).on('click', '.serial-trigger', function() {
         $('#locator-container').trigger('addSerial', $(this).attr('data-device-serial'));
@@ -72,12 +121,24 @@ var Script = function () {
     });
 
     $("#fDrawingId").on("change", function(e) {
+        if (!$(this).val() || !$(this).val().match(/^[\d]+$/)) {
+            return;
+        }
+
         var opt = $("#fDrawingId option[value=" + $(this).val() + "]");
+        if (!!drawingDetails) {
+            drawingDetails.text('Drawing ' + selectedDrawingIndex + ' of ' + totalDrawingIndex + ': ' + opt.text());
+        }
         devicesTable.fnDraw();
         findDeviceList({
             drawingID: $(this).val(),
             width: opt.attr('data-width'),
-            height: opt.attr('data-height')
+            height: opt.attr('data-height'),
+            image: {
+                name: opt.text(),
+                selected: selectedDrawingIndex,
+                total: totalDrawingIndex
+            }
         });
         return;
     });

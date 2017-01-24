@@ -381,7 +381,7 @@ return array(
                 'label' => 'Tools',
                 'route' => 'tools',
                 'ico'=> 'icon-laptop',
-                //'permissions' => array('product.read'),
+                'permissions' => array('project.read'),
                 'pages' => array(
                     array(
                         'label' => 'Dashboard',
@@ -398,6 +398,7 @@ return array(
                 'label' => 'Calendar',
                 'route' => 'calendar',
                 'ico'=> 'icon-calendar',
+                'permissions' => array('project.read'),
                 'pages' => array(
                     array(
                         'label' => 'Add Advanced Event',

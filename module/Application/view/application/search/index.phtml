@@ -1,6 +1,5 @@
 <?php
-
-$this->headStyle()->captureStart() 
+$this->headStyle()->captureStart()
 ?>
     .term {
         color: #468847!important;
@@ -21,7 +20,7 @@ $this->headStyle()->captureEnd();
             <div class="widget-body">
                 <div class="tabbable portlet-tabs">
                     <ul class="nav nav-tabs pull-left">
-                        <li class="active"><a href="#portlet_tab1" data-toggle="tab">Client Search</a></li>
+                        <li class="active"><a href="#portlet_tab1" data-toggle="tab"><?php echo $branchMode ? 'Branch' : 'Client'; ?> Search</a></li>
                     </ul>
                     <div class="clearfix"></div>
                     <div class="tab-content">
@@ -56,10 +55,17 @@ $this->headStyle()->captureEnd();
                                                     'data'=>array()
                                                 );
                                             }
-                                            $clients[$cid]['data'][] = (($project['typeId']==3)?'Trial':(($project['weighting']==1)?'Job':'Project')).': <a href="/client-'.$cid.'/project-'.$project['projectId'].'/">'.preg_replace("/($term)/i","<span class=\"term\">\${1}</span>",$project['pName']).
+                                            if ($branchMode) {
+                                                $clients[$cid]['data'][] = 'Branch: <a href="/branch-' . $project['projectId'] . '/">'.preg_replace("/($term)/i","<span class=\"term\">\${1}</span>",$project['pName']).
                                                     '&nbsp;&nbsp;<small class="text-warning">['.str_pad($cid, 5, "0", STR_PAD_LEFT).'-'.str_pad($project['projectId'], 5, "0", STR_PAD_LEFT).']</small></a>'.
                                                     ($project['test']?'&nbsp;<small>[Test Project]</small>':'').
                                                     ($project['cancelled']?'&nbsp;<small class="text-error">[Cancelled]</small>':'');
+                                            } else {
+                                                $clients[$cid]['data'][] = (($project['typeId']==3)?'Trial':(($project['weighting']==1)?'Job':'Project')).': <a href="/client-'.$cid.'/project-'.$project['projectId'].'/">'.preg_replace("/($term)/i","<span class=\"term\">\${1}</span>",$project['pName']).
+                                                    '&nbsp;&nbsp;<small class="text-warning">['.str_pad($cid, 5, "0", STR_PAD_LEFT).'-'.str_pad($project['projectId'], 5, "0", STR_PAD_LEFT).']</small></a>'.
+                                                    ($project['test']?'&nbsp;<small>[Test Project]</small>':'').
+                                                    ($project['cancelled']?'&nbsp;<small class="text-error">[Cancelled]</small>':'');
+                                            }
                                         }
 
                                         echo '<h4><strong>'.ucwords($this->wordify($count)).' Match'.(($count==1)?'':'es').' Found</strong> in which the keyword &quot;<span class="term">'.$term.'</span>&quot; matches elements of the client or project name</h4><hr />';
@@ -67,7 +73,7 @@ $this->headStyle()->captureEnd();
                                         foreach ($clients as $clientId=>$client) {
                                             $i++;
                                             echo '<div class="classic-search">';
-                                            echo '<h4>'.$i.'. <a href="/client-'.$clientId.'/">Client: '.$client['name'].'</a></h4>';
+                                            echo '<h4>'.$i.'. ' . ($branchMode ? $client['name'] : '<a href="/client-'.$clientId.'/">Client: '.$client['name'].'</a>') . '</h4>';
                                             echo implode('<br />', $client['data']);
                                             echo '</div>';
                                         }

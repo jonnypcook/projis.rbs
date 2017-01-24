@@ -193,6 +193,10 @@ class Project extends EntityRepository
             ->setParameter('name', '%'.trim(preg_replace('/[*]+/','%',$keyword),'%').'%')
             ->orderBy('c.clientId', 'DESC')
             ->orderBy('p.projectId', 'DESC');
+
+        if ($params['branchMode'] === true) {
+            $queryBuilder->join('p.lipProject', 'lip');
+        }
         
         $query  = $queryBuilder->getQuery();
         

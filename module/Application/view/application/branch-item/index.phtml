@@ -17,23 +17,21 @@ $this->inlineScript()
                 CREATED: <?php echo $project->getcreated()->format('d/m/Y H:i'); ?> |
                 REFERENCE: <?php echo str_pad($project->getClient()->getClientId(), 5, "0", STR_PAD_LEFT),'-',str_pad($project->getProjectId(), 5, "0", STR_PAD_LEFT) ?>
             </p>
-            <h5>Weighting<span class="pull-right"><?php echo $project->getWeighting(); ?>%</span></h5>
+            <h5>Weighting<span class="pull-right"><?php echo $weighting; ?>%</span></h5>
             <div id="slider-range-min" class="slider"></div>
             <div class="progress progress-striped progress-<?php
-            if ($project->getWeighting()<10) {
+            if ($weighting < 25) {
                 echo 'danger';
-            } elseif ($project->getWeighting()<30) {
+            } elseif ($weighting < 50) {
                 echo 'warning';
-            } elseif ($project->getWeighting()<50) {
-                echo 'info';
-            } elseif ($project->getWeighting()<80) {
+            } elseif ($weighting < 75) {
                 echo 'striped';
             } else {
                 echo 'success';
             }
 
             ?>">
-                <div style="width: <?php echo $project->getWeighting(); ?>%;" class="bar"></div>
+                <div style="width: <?php echo $weighting; ?>%;" class="bar"></div>
             </div>
             <table class="table table-bordered">
                 <thead>
@@ -46,7 +44,7 @@ $this->inlineScript()
                 <tbody>
                 <tr>
                     <td style="width: 120px">
-                        Project States
+                        Project Status
                     </td>
                     <td>
                         <?php
@@ -58,12 +56,20 @@ $this->inlineScript()
                             'default',
                         );
                         $labelIdx = 0;
+                        $validStates = array(20, 21, 22, 101);
                         foreach ($project->getStates() as $state) {
+                            if (!in_array($state->getStateId(), $validStates)) {
+                                continue;
+                            }
+
                             echo '<span class="label label-'.$labelTypes[$labelIdx].' label-mini">'.ucwords($state->getName()).'</span>&nbsp;';
                             $labelIdx++;
                             if ($labelIdx>(count($labelTypes)-1)) {
                                 $labelIdx = 0;
                             }
+                        }
+                        if ($labelIdx === 0) {
+                            echo 'unavailable';
                         }
                         ?>
                     </td>

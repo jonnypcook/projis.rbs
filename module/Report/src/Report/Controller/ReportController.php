@@ -31,6 +31,11 @@ class ReportController extends AuthController
         $reports = $query->getResult();
         $reportsFiltered = array();
         foreach ($reports as $report) {
+            if ($report->getPermission()) {
+                if (!$this->isGranted($report->getPermission())) {
+                    continue;
+                }
+            }
             if (empty($reportsFiltered[$report->getGroup()->getName()])) {
                 $reportsFiltered[$report->getGroup()->getName()] = array(
                     'icon'=>$report->getGroup()->getIcon(),
@@ -51,6 +56,52 @@ class ReportController extends AuthController
     private function getReportData(\Report\Entity\Report $report, $options=array()) {
         $data = array();
         switch ($report->getReportId()) {
+            case 16:
+                $sql = "SELECT
+                    c.`client_id`, p.`project_id`,
+                    c.`name` as `cname`,
+                    p.`name` as `pname`,
+                    t1.`price`,
+                    p.`propertyCount`,
+                    ROUND(t1.`price`/p.`propertyCount`, 2) as `ppp`
+                    FROM `Project` p
+                    INNER JOIN `Client` c ON c.`client_id` = p.`client_id`
+                    INNER JOIN (
+                        SELECT SUM(ROUND((sys.`quantity` * sys.`ppu`)*(1-(p.`mcd` * pr.`mcd`)), 2)) AS `price`, p.`project_id`
+                        FROM `System` sys
+                        INNER JOIN `Product` pr ON pr.`product_id` = sys.`product_id`
+                        inner Join `Space` s on s.`space_id` = sys.`space_id`
+                        INNER JOIN `Project` p ON p.`project_id` = s.`project_id`
+                        WHERE s.`deleted`!=1
+                        GROUP BY s.`project_id`
+                    ) t1 ON t1.`project_id` = p.`project_id`
+                    WHERE
+                        p.`propertyCount`>1 AND
+                        p.`propertyCount` IS NOT NULL AND
+                        p.`project_status_id`=1
+                    ORDER BY c.`client_id`, p.`client_id` ASC
+                    ";
+                $stmt = $this->getEntityManager()->getConnection()->prepare($sql);
+                $stmt->execute();
+
+                $data = $stmt->fetchAll();
+                if (!empty($options['headers'])) {
+                    $tmp = array();
+                    $tmp[] = array('"Project Reference"', '"Client Name"', '"Project Name"', 'Value', '"Property Count"', '"Price Per Property"');
+                    foreach ($data as $item) {
+                        $tmp[] = array (
+                            $item['client_id'].'-'.$item['project_id'],
+                            '"'.$item['cname'].'"',
+                            '"'.$item['pname'].'"',
+                            $item['price'],
+                            $item['propertyCount'],
+                            $item['ppp'],
+                        );
+                    }
+
+                    return $tmp;
+                }
+                return $data;
             case 5: 
                 $sql = "SELECT 
                     c.`client_id`, p.`project_id`,
@@ -208,16 +259,16 @@ order by s.`state_id`
         if (empty($rid)) {
             throw new \Exception('illegal report route');
         }
-        
+
         $report = $this->getEntityManager()->find('Report\Entity\Report', $rid);
-        
-        $data = $this->getReportData($report); 
+
+        $data = $this->getReportData($report);
 
         $this->getView()
             ->setVariable('report', $report)
             ->setVariable('partialScript', strtolower(preg_replace('/[ .-]/i', '', $report->getName())));
-        
-        
+
+
         
         $this->getView()->setVariable('data', $data);
         return $this->getView();

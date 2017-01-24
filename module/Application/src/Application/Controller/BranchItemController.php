@@ -372,7 +372,10 @@ class BranchItemController extends AuthController
         $commissioned = $this->getProject()->hasState(101);
         $installed = $this->getProject()->hasState(100);
 
+        $weighting = 0;
+
         return $this->getView()
+            ->setVariable('weighting', $weighting)
             ->setVariable('commissioned', $commissioned)
             ->setVariable('installed', $installed)
             ->setVariable('deviceCount', $deviceCount);

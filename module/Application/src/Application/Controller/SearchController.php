@@ -28,6 +28,7 @@ class SearchController extends AuthController
         if (!empty($term)) {
             $term = trim($term);
         }
+
         $em = $this->getEntityManager();
         $matches = array();
         if (preg_match('/^([\d]+)([-]([\d]+))?$/', $term, $matches)) {
@@ -47,32 +48,40 @@ class SearchController extends AuthController
             }
             
         }
-        
+
         $projects = array();
+        $params = array('array'=>array(
+            'p.name AS pName',
+            'c.name AS cName',
+            's.name AS sName',
+            's.weighting',
+            's.job',
+            's.halt',
+            'c.clientId',
+            'p.projectId',
+            't.typeId',
+            'p.cancelled',
+            'p.test',
+        ));
+
+        if (!$this->isGranted('project.read') && !$this->isGranted('branch.read')) {
+            return $this->redirect()->toRoute('home');
+        } elseif (!$this->isGranted('project.read') && $this->isGranted('branch.read')) {
+            $params['branchMode'] = true;
+        }
+
+
         
         // client search 
         if (!empty($term)){
-            $projects = $em->getRepository('Project\Entity\Project')->searchByName($term, array('array'=>array(
-                'p.name AS pName',
-                'c.name AS cName',
-                's.name AS sName',
-                's.weighting',
-                's.job',
-                's.halt',
-                'c.clientId',
-                'p.projectId',
-                't.typeId',
-                'p.cancelled',
-                'p.test',
-            )));
-            
-            
+            $projects = $em->getRepository('Project\Entity\Project')->searchByName($term, $params);
             //$this->debug()->dump($projects);
         }
         
         $this->getView()
                 ->setVariable('count', count($projects))
                 ->setVariable('term', $term)
+                ->setVariable('branchMode', $params['branchMode'] === true)
                 ->setVariable('projects', $projects);
 
         return $this->getView();

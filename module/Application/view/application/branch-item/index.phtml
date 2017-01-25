@@ -15,7 +15,8 @@ $this->inlineScript()
             <p>
                 OWNER <a href="javascript:;" class="author"><?php echo strtoupper($project->getClient()->getUser()->getHandle()); ?></a> |
                 CREATED: <?php echo $project->getcreated()->format('d/m/Y H:i'); ?> |
-                REFERENCE: <?php echo str_pad($project->getClient()->getClientId(), 5, "0", STR_PAD_LEFT),'-',str_pad($project->getProjectId(), 5, "0", STR_PAD_LEFT) ?>
+                REFERENCE: <?php echo str_pad($project->getClient()->getClientId(), 5, "0", STR_PAD_LEFT),'-',str_pad($project->getProjectId(), 5, "0", STR_PAD_LEFT) ?> |
+                PROVIDER: <?php echo $project->getLipProject()->getProjectID(); ?>
             </p>
             <h5>Weighting<span class="pull-right"><?php echo $weighting; ?>%</span></h5>
             <div id="slider-range-min" class="slider"></div>

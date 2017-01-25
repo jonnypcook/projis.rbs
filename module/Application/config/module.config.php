@@ -104,7 +104,7 @@ return array(
                     ),
                     'defaults' => array(
                         'controller' => 'Application\Controller\Branch',
-                        'action'   => 'index'
+                        'action'   => 'pending'
                     ),
                 ),
             ),
@@ -330,6 +330,29 @@ return array(
                         'label' => 'Development Tasks',
                         'route' => 'tasks',
                         'action' => 'development',
+                    ),
+                ),
+            ),
+            array(
+                'label' => 'Branches',
+                'route' => 'branches',
+                'permissions' => array('branch.read'),
+                'ico'=> 'icon-book',
+                'pages' => array(
+                    array(
+                        'label' => 'Pending',
+                        'route' => 'branches',
+                        'action' => 'pending',
+                    ),
+                    array(
+                        'label' => 'Commissioned',
+                        'route' => 'branches',
+                        'action' => 'commissioned',
+                    ),
+                    array(
+                        'label' => 'Map',
+                        'route' => 'branches',
+                        'action' => 'map',
                     ),
                 ),
             ),

@@ -49,17 +49,60 @@ class DashboardController extends AuthController
         return new JsonModel(empty($data)?array('err'=>true):$data);/**/
     }
     
-    public function test1Action() { 
-        
-        die('stop');
-    }
-    
+
     /**
      * main Dashboard action
      * @return \Zend\View\Model\ViewModel
      */
     public function indexAction()
     {
+        // if we are a customer role
+        if (!$this->isGranted('project.read') && $this->isGranted('branch.read')) {
+            $config = $this->getServiceLocator()->get('Config');
+
+            if (empty($config) || !is_array($config['liteip']) || empty($config['liteip']['client'])) {
+                return $this->getView();
+            }
+
+            $clients = $config['liteip']['client'];
+            $em = $this->getEntityManager();
+
+            // find total projects
+            $qb = $em->createQueryBuilder();
+            $qb->select('COUNT(p)')
+                ->from('Project\Entity\Project', 'p')
+                ->innerJoin('p.lipProject', 'lip')
+                ->where($qb->expr()->in('p.client', ':cid'))
+                ->andWhere('p.test != true')
+                ->andWhere('p.cancelled != true')
+                ->setParameter('cid', $clients);
+            $q = $qb->getQuery();
+            $totalProjects = $q->getSingleScalarResult();
+
+            // find total commissioned projects
+            $qb2  = $em->createQueryBuilder();
+            $qb2->select('prj.projectId')
+                ->from('Project\Entity\Project', 'prj')
+                ->innerJoin('prj.states', 's')
+                ->where('s.stateId = 101');
+
+            $qb = $em->createQueryBuilder();
+            $qb->select('COUNT(p)')
+                ->from('Project\Entity\Project', 'p')
+                ->innerJoin('p.lipProject', 'lip')
+                ->where($qb->expr()->in('p.client', ':cid'))
+                ->andWhere('p.test != true')
+                ->andWhere('p.cancelled != true')
+                ->andWhere($qb->expr()->in('p.projectId', $qb2->getDQL()))
+                ->setParameter('cid', $clients);
+            $q = $qb->getQuery();
+            $totalCommissioned = $q->getSingleScalarResult();
+
+            return $this->getView()
+                ->setVariable('totalProjects', $totalProjects)
+                ->setVariable('totalPending', $totalProjects - $totalCommissioned)
+                ->setVariable('totalCommissioned', $totalCommissioned);
+        }
         $info = array();
 
         // calculate monthly conversion

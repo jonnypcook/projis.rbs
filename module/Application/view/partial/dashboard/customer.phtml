@@ -20,7 +20,7 @@ $this->inlineScript()
             </a>
         </div>
         <div class="metro-nav-block nav-block-blue">
-            <a data-original-title="" href="/map/">
+            <a data-original-title="" href="/branch/map/">
                 <i class="icon-globe"></i>
                 <div class="info"><?php echo $info['activeProjects']; ?> Branches</div>
                 <div class="status">Map View</div>
@@ -34,16 +34,16 @@ $this->inlineScript()
             </a>
         </div>
         <div class="metro-nav-block nav-block-green">
-            <a data-original-title="" href="/project">
+            <a data-original-title="" href="/branch/commissioned">
                 <i class="icon-check"></i>
-                <div class="info"><?php echo $info['activeProjects']; ?></div>
+                <div class="info"><?php echo $totalCommissioned; ?></div>
                 <div class="status">Commissioned Branches</div>
             </a>
         </div>
         <div class="metro-nav-block nav-block-grey">
-            <a data-original-title="" href="/project">
+            <a data-original-title="" href="/branch/pending">
                 <i class="icon-calendar"></i>
-                <div class="info"><?php echo $info['activeProjects']; ?></div>
+                <div class="info"><?php echo $totalPending; ?></div>
                 <div class="status">Pending Branches</div>
             </a>
         </div>

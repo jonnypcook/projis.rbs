@@ -77,6 +77,26 @@ class BranchController extends AuthController
             ->andWhere('p.cancelled != true')
             ->setParameter('cid', $this->getClients());
 
+        $commissioned = $this->params()->fromQuery('commissioned',false);
+        $pending = $this->params()->fromQuery('pending',false);
+        if ($commissioned) {
+            $qb2  = $em->createQueryBuilder();
+            $qb2->select('prj.projectId')
+                ->from('Project\Entity\Project', 'prj')
+                ->innerJoin('prj.states', 's')
+                ->where('s.stateId = 101');
+
+            $queryBuilder->andWhere($queryBuilder->expr()->in('p.projectId', $qb2->getDQL()));
+        } elseif ($pending) {
+            $qb2  = $em->createQueryBuilder();
+            $qb2->select('prj.projectId')
+                ->from('Project\Entity\Project', 'prj')
+                ->innerJoin('prj.states', 's')
+                ->where('s.stateId = 101');
+
+            $queryBuilder->andWhere($queryBuilder->expr()->notIn('p.projectId', $qb2->getDQL()));
+        }
+
         /*
         * Filtering
         * NOTE this does not match the built-in DataTables filtering which does it
@@ -180,6 +200,22 @@ class BranchController extends AuthController
      */
     public function getLiteIpService() {
         return $this->getServiceLocator()->get('LiteIpService');
+    }
+
+
+    public function mapAction() {
+        $this->setCaption('Map');
+        return $this->getView();
+    }
+
+    public function commissionedAction() {
+        $this->setCaption('Commissioned Branches');
+        return $this->getView();
+    }
+
+    public function pendingAction() {
+        $this->setCaption('Pending Branches');
+        return $this->getView();
     }
 
 }

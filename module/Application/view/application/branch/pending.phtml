@@ -1,0 +1,39 @@
+<?php
+$this->headLink()
+    ->appendStylesheet('/assets/data-tables/DT_bootstrap.css');
+
+$this->inlineScript()
+    ->appendFile('/assets/data-tables/jquery.dataTables.js')
+    ->appendFile('/assets/data-tables/DT_bootstrap.js')
+    ->appendFile('/js/forms/branch/list-branches.js');
+
+
+?>
+<div class="row-fluid">
+    <div class="span12">
+        <!-- BEGIN PROGRESS PORTLET-->
+        <div class="widget blue">
+            <div class="widget-title">
+                <h4><i class="icon-tasks"></i> Pending Branches</h4>
+                <span class="tools">
+                    <a href="javascript:;" class="icon-chevron-down"></a>
+                </span>
+            </div>
+            <div class="widget-body">
+                <table class="table table-bordered table-advance table-responsive" id="branches_tbl">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Postcode</th>
+                        <th>Address</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        <form class="form-nomargin"><input type="hidden" name="pending" id="pending" value="1" /></form>
+        <!-- END PROGRESS PORTLET-->
+    </div>
+</div>

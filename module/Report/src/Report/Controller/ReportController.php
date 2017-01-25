@@ -57,52 +57,139 @@ class ReportController extends AuthController
         $data = array();
         switch ($report->getReportId()) {
             case 16:
-                $sql = "SELECT
-                    c.`client_id`, p.`project_id`,
-                    c.`name` as `cname`,
-                    p.`name` as `pname`,
-                    t1.`price`,
-                    p.`propertyCount`,
-                    ROUND(t1.`price`/p.`propertyCount`, 2) as `ppp`
-                    FROM `Project` p
-                    INNER JOIN `Client` c ON c.`client_id` = p.`client_id`
-                    INNER JOIN (
-                        SELECT SUM(ROUND((sys.`quantity` * sys.`ppu`)*(1-(p.`mcd` * pr.`mcd`)), 2)) AS `price`, p.`project_id`
-                        FROM `System` sys
-                        INNER JOIN `Product` pr ON pr.`product_id` = sys.`product_id`
-                        inner Join `Space` s on s.`space_id` = sys.`space_id`
-                        INNER JOIN `Project` p ON p.`project_id` = s.`project_id`
-                        WHERE s.`deleted`!=1
-                        GROUP BY s.`project_id`
-                    ) t1 ON t1.`project_id` = p.`project_id`
-                    WHERE
-                        p.`propertyCount`>1 AND
-                        p.`propertyCount` IS NOT NULL AND
-                        p.`project_status_id`=1
-                    ORDER BY c.`client_id`, p.`client_id` ASC
-                    ";
-                $stmt = $this->getEntityManager()->getConnection()->prepare($sql);
-                $stmt->execute();
+                $data = array(
+                    'projects' => array(),
+                    'count' => array(
+                        'project' => 0,
+                        'drawing' => 0,
+                        'device' => 0,
+                        'passed' => 0,
+                        'error' => 0,
+                        'warning' => 0
+                    )
+                );
+                $config = $this->getServiceLocator()->get('Config');
 
-                $data = $stmt->fetchAll();
-                if (!empty($options['headers'])) {
-                    $tmp = array();
-                    $tmp[] = array('"Project Reference"', '"Client Name"', '"Project Name"', 'Value', '"Property Count"', '"Price Per Property"');
-                    foreach ($data as $item) {
-                        $tmp[] = array (
-                            $item['client_id'].'-'.$item['project_id'],
-                            '"'.$item['cname'].'"',
-                            '"'.$item['pname'].'"',
-                            $item['price'],
-                            $item['propertyCount'],
-                            $item['ppp'],
+                if (empty($config) || !is_array($config['liteip']) || empty($config['liteip']['client'])) {
+                    return $data;
+                }
+
+                $clientGroup = $config['liteip']['client'];
+                $qb2  = $this->getEntityManager()->createQueryBuilder();
+                $qb2->select('lip.ProjectID')
+                    ->from('Project\Entity\Project', 'p')
+                    ->innerJoin('p.lipProject', 'lip')
+                    ->where($qb2->expr()->in('p.client', $clientGroup))
+                    ->andWhere('p.test != true')
+                    ->andWhere('p.cancelled != true');
+
+
+                $qb = $this->getEntityManager()->createQueryBuilder();
+                $qb->select('d')
+                    ->from('Application\Entity\LiteipDevice', 'd')
+                    ->innerJoin('d.drawing', 'dr')
+                    ->where('d.IsE3=true')
+                    ->andWhere($qb->expr()->in('dr.project', $qb2->getDQL()))
+                    ->addOrderBy('dr.project', 'ASC')
+                    ->addOrderBy('dr.DrawingID', 'ASC');
+
+                $devices = $qb->getQuery()->getResult();
+
+                $now = new \DateTime('now');
+                foreach ($devices as $device) {
+                    $projectName = $device->getDrawing()->getProject()->getProjectDescription();
+                    $drawingName = $device->getDrawing()->getDrawing(true);
+
+                    if (empty($data['projects'][$projectName])) {
+                        $data['projects'][$projectName] = array(
+                            'drawings' => array(),
+                            'count' => array (
+                                'drawing' => 0,
+                                'device' => 0,
+                                'passed' => 0,
+                                'error' => 0,
+                                'warning' => 0
+                            )
                         );
+
+                        $data['count']['project']++;
                     }
 
-                    return $tmp;
+                    if (empty($data['projects'][$projectName]['drawings'][$drawingName])) {
+                        $data['projects'][$projectName]['drawings'][$drawingName] = array(
+                            'errors' => array(),
+                            'warnings' => array(),
+                        );
+
+                        $data['count']['drawing']++;
+                        $data['projects'][$projectName]['count']['drawing']++;
+                    }
+
+                    $data['projects'][$projectName]['count']['device']++;
+                    $data['count']['device']++;
+
+
+                    if ($device->getStatus() && $device->getStatus()->isFault()) {
+                        $data['count']['error']++;
+                        $data['projects'][$projectName]['count']['error']++;
+
+                        $data['projects'][$projectName]['drawings'][$drawingName]['errors'][] = array(
+                            $device->getDeviceID(),
+                            $device->getDeviceSN(),
+                            $device->getStatus()->getDescription(),
+                            empty($device->getLastE3StatusDate()) ? 'Unknown' : $device->getLastE3StatusDate()->format('d/m/Y H:i:s')
+                        );
+                    } else {
+                        $data['count']['passed']++;
+                        $data['projects'][$projectName]['count']['passed']++;
+                    }
+
+                    $timestamp = empty($device->getLastE3StatusDate()) ? 0 : $device->getLastE3StatusDate()->getTimestamp();
+                    $diff = $now->getTimestamp() - $timestamp;
+                    if($device->isIsE3() && (floor($diff / (60 * 60 * 24)) > 0)) { // if not tested for 24 hours
+                        $data['count']['warning']++;
+                        $data['projects'][$projectName]['count']['warning']++;
+
+                        $data['projects'][$projectName]['drawings'][$drawingName]['warnings'][] = array(
+                            $device->getDeviceID(),
+                            $device->getDeviceSN(),
+                            floor($diff / (60 * 60 * 24)),
+                            empty($device->getLastE3StatusDate()) ? '' : $device->getLastE3StatusDate()->format('d/m/Y H:i:s')
+                        );
+                    }
                 }
+
+                if (!empty($options['headers'])) {
+                    $csv = array();
+                    $csv[] = array('"Projects Polled"', $data['count']['project']);
+                    $csv[] = array('"Floors Polled"', $data['count']['drawing']);
+                    $csv[] = array('"Devices Polled"', $data['count']['device']);
+                    $csv[] = array('"Error Count"', $data['count']['error']);
+                    $csv[] = array();
+
+                    $csv[] = array('"Project"', '"Floor"', '"Serial"', '"Status"', '"Last Tested"');
+
+                    foreach ($data['projects'] as $projectName => $project) {
+                        if (empty($project['drawings'])) {
+                            continue;
+                        }
+
+                        foreach ($project['drawings'] as $drawingName => $drawing) {
+                            if (empty($drawing['errors'])) {
+                                continue;
+                            }
+
+                            foreach ($drawing['errors'] as $error) {
+                                $csv[] = array('"' . $projectName . '"', '"' . $drawingName . '"', '"' . $error[1] . '"', '"' . $error[2] . '"', '"' . $error[3] . '"');
+                            }
+                        }
+                    }
+
+                    return $csv;
+                }
+
                 return $data;
-            case 5: 
+            case 5:
                 $sql = "SELECT 
                     c.`client_id`, p.`project_id`,
                     c.`name` as `cname`,
@@ -263,7 +350,7 @@ order by s.`state_id`
         $report = $this->getEntityManager()->find('Report\Entity\Report', $rid);
 
         $data = $this->getReportData($report);
-
+        $this->setCaption($report->getName());
         $this->getView()
             ->setVariable('report', $report)
             ->setVariable('partialScript', strtolower(preg_replace('/[ .-]/i', '', $report->getName())));

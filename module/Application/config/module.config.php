@@ -356,6 +356,7 @@ return array(
                 'label' => 'Tracking',
                 'route' => 'assets',
                 'ico'=> 'icon-fire',
+                'permissions' => array('product.read', 'project.read'),
                 'pages' => array(
                     array(
                         'label' => 'Installers\' Barcode',

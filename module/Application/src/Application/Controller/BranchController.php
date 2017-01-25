@@ -220,7 +220,30 @@ class BranchController extends AuthController
 
     public function mapAction() {
         $this->setCaption('Map');
-        return $this->getView();
+
+        $em = $this->getEntityManager();
+        $queryBuilder = $em->createQueryBuilder();
+
+        $queryBuilder
+            ->select('p')
+            ->from('Project\Entity\Project', 'p')
+            ->innerJoin('p.lipProject', 'lip')
+            ->innerJoin('p.address', 'a')
+            ->where($queryBuilder->expr()->in('p.client', ':cid'))
+            ->andWhere('p.test != true')
+            ->andWhere('p.cancelled != true')
+            ->andWhere('a.lat IS NOT NULL')
+            ->andWhere('a.lng IS NOT NULL')
+            ->setParameter('cid', $this->getClients());
+
+        $branches = $queryBuilder->getQuery()->getResult();
+
+        $locations = array();
+        foreach ($branches as $branch) {
+            $locations[] = $branch->getAddress()->getLat() . ',' . $branch->getAddress()->getLng() . ', "' . $branch->getName() . '", "' . $branch->getAddress()->assemble() . '", ' . $branch->getProjectId();
+        }
+
+        return $this->getView()->setVariable('locations', $locations);
     }
 
     public function commissionedAction() {

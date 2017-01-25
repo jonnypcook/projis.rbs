@@ -1,3 +1,71 @@
+<?php
+if (empty($locations)) { ?>
+    <div class="row-fluid">
+        <div class="span12">
+            <!-- BEGIN PROGRESS PORTLET-->
+            <div class="widget blue">
+                <div class="widget-title">
+                    <h4><i class="icon-tasks"></i> Map</h4>
+                <span class="tools">
+                    <a href="javascript:;" class="icon-chevron-down"></a>
+                </span>
+                </div>
+                <div class="widget-body">
+                    <p>There are no branches that have been configured to appear on this map.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php
+    return;
+}
+
+$location = 'var locations = [['.implode('],[',$locations).']];';
+
+$this->inlineScript()->captureStart();
+echo <<<JS
+{$location}
+
+function initMap() {
+    var uluru = {lat: 51.4145305, lng: 0.3202421};
+
+    var myLatlng = new google.maps.LatLng(51.507351, -0.127758);
+    var mapOptions = {
+        center: myLatlng
+    };
+    var bounds = new google.maps.LatLngBounds();
+    var map;
+    var infowindow = new google.maps.InfoWindow();
+
+    map = new google.maps.Map(document.getElementById('map'), mapOptions);
+
+    var marker, i;
+
+    for (i = 0; i < locations.length; i++) {
+        marker = new google.maps.Marker({
+            position: new google.maps.LatLng(locations[i][0], locations[i][1]),
+            map: map
+        });
+
+        google.maps.event.addListener(marker, 'click', (function(marker, i) {
+            return function() {
+                infowindow.setContent('<p><strong>' + locations[i][2] + '</strong></p>' +
+                '<p>' + locations[i][3] + '</p>' +
+                '<p><a href="/branch-' + locations[i][4] + '">Click to visit</a></p>');
+                infowindow.open(map, marker);
+            }
+        })(marker, i));
+
+        bounds.extend(marker.position);
+    }
+
+    map.fitBounds(bounds);
+}
+
+JS;
+$this->inlineScript()->captureEnd();
+$this->inlineScript()->appendFile('https://maps.googleapis.com/maps/api/js?key=AIzaSyA4Spe8FXyD4dgvEf0fwBI26mnfrO21T4o&callback=initMap');
+?>
 <div class="row-fluid">
     <div class="span12">
         <!-- BEGIN PROGRESS PORTLET-->
@@ -9,7 +77,8 @@
                 </span>
             </div>
             <div class="widget-body">
-                This service is currently unavailable
+                <p>Below are dislayed the RBS branches that are currently set up on the system.  Click on a pin to view further details.</p>
+                <div id="map" style="width: 100%; height: 600px"></div>
             </div>
         </div>
     </div>

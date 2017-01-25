@@ -72,6 +72,7 @@ $this->inlineScript()
         </table>
     </div>
 </div>
+<?php if (!$this->hasRole('Customer')) { ?>
 <div class="row-fluid relative">
     <div class="span12">
         <hr />
@@ -162,3 +163,4 @@ $this->inlineScript()
         </table>
     </div>
 </div>
+<?php } ?>

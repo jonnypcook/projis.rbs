@@ -44,7 +44,7 @@ class DoctrineController extends AbstractActionController
             $form->setData($request->getPost());
 			// echo "<h1>I am here1</h1>";
             if ($form->isValid()) {
-				$data = $form->getData();			
+				$data = $form->getData();
 
                 // $data = $this->getRequest()->getPost();
 				// If you used another name for the authentication service, change it here

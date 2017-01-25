@@ -40,7 +40,6 @@ class LoginFilter extends InputFilter
 			'name'     => 'password', // usr_password
 			'required' => true,
 			'filters'  => array(
-				array('name' => 'StripTags'),
 				array('name' => 'StringTrim'),
 			),
 			'validators' => array(
@@ -49,7 +48,7 @@ class LoginFilter extends InputFilter
 					'options' => array(
 						'encoding' => 'UTF-8',
 						'min'      => 6,
-						'max'      => 12,
+						'max'      => 20,
 					),
 				),
 			),

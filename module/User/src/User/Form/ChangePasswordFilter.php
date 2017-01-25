@@ -21,7 +21,6 @@ class ChangePasswordFilter extends InputFilter
             'name' => 'newPassword',
             'required' => true,
             'filters' => array(
-                array('name' => 'StripTags'),
                 array('name' => 'StringTrim')
             ),
             'validators' => array(
@@ -40,7 +39,6 @@ class ChangePasswordFilter extends InputFilter
 			'name' => 'newPasswordConfirm',
             'required' => true,
             'filters' => array(
-                array('name' => 'StripTags'),
                 array('name' => 'StringTrim')
             ),
             'validators' => array(

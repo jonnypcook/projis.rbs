@@ -373,6 +373,22 @@ class BranchItemController extends AuthController
         $installed = $this->getProject()->hasState(100);
 
         $weighting = 0;
+        if ($commissioned) {
+            $weighting = 100;
+        } else {
+            if ($this->getProject()->hasState(20)) {
+                $weighting += 25;
+            }
+
+            if ($this->getProject()->hasState(21)) {
+                $weighting += 25;
+            }
+
+            if ($this->getProject()->hasState(22)) {
+                $weighting += 25;
+            }
+        }
+
 
         return $this->getView()
             ->setVariable('weighting', $weighting)

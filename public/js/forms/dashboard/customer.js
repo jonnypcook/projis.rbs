@@ -12,7 +12,7 @@ var Script = function () {
         },
         bProcessing: true,
         bServerSide: true,
-        iDisplayLength:25,
+        iDisplayLength:10,
         aLengthMenu: [[5, 10, 15, 20, 25, 50], [5, 10, 15, 20, 25, 50]],
         "aoColumns": [
             null,

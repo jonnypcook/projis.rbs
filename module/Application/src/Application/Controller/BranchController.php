@@ -170,18 +170,33 @@ class BranchController extends AuthController
 
 
         foreach ($paginator as $page) {
-            if ($page->getWeighting()<10) {
+            $weighting = 0;
+            if ($page->hasState(101)) {
+                $weighting = 100;
+            } else {
+                if ($page->hasState(20)) {
+                    $weighting += 25;
+                }
+
+                if ($page->hasState(21)) {
+                    $weighting += 25;
+                }
+
+                if ($page->hasState(22)) {
+                    $weighting += 25;
+                }
+            }
+
+            if ($weighting < 25) {
                 $statusCls = 'danger';
-            } elseif ($page->getWeighting()<30) {
+            } elseif ($weighting < 50) {
                 $statusCls = 'warning';
-            } elseif ($page->getWeighting()<50) {
-                $statusCls = 'info';
-            } elseif ($page->getWeighting()<80) {
+            } elseif ($weighting < 75) {
                 $statusCls = 'striped';
             } else {
                 $statusCls = 'success';
             }
-            $statusHtml = '<span style="position: absolute; padding-top:12px">'. $page->getWeighting() .'%</span><div class="progress progress-'.$statusCls.'"><div style="width: '. $page->getWeighting() .'%;" class="bar"></div></div>';
+            $statusHtml = '<span style="position: absolute; padding-top:12px">'. $weighting .'%</span><div class="progress progress-'.$statusCls.'"><div style="width: '. $weighting .'%;" class="bar"></div></div>';
 
             $data['aaData'][] = array (
                 '<a href="/branch-' . $page->getProjectId() . '/">' . $page->getName() . '</a>',

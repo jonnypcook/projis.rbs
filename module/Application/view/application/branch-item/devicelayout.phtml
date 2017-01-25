@@ -1,4 +1,15 @@
 <?php
+
+if (empty($drawings)) { ?>
+    <div class="row-fluid">
+        <div class="span12">
+            <p>There are no uploaded drawings to this project.</p>
+        </div>
+    </div>
+    <?php
+    return;
+}
+
 $this->headLink()
     ->appendStylesheet('/assets/speech/speech-bubbles.css');
 
@@ -13,16 +24,16 @@ $this->inlineScript()
     ->appendFile('/js/forms/liteip/locator.image.js');
 ;
 
-if (!empty($drawings)) {
-    $this->inlineScript()->captureStart();
-    echo <<<JS
+
+
+$this->inlineScript()->captureStart();
+echo <<<JS
 <!-- 3 -->
 $(function() {
     $("#fDrawingId").trigger('change');
 });
 JS;
-    $this->inlineScript()->captureEnd();
-}
+$this->inlineScript()->captureEnd();
 ?>
 <div class="row-fluid">
     <div class="metro-nav metro-fix-view">

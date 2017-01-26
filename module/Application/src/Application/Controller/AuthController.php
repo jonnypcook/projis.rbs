@@ -52,16 +52,36 @@ abstract class AuthController extends AbstractActionController
         $this->layout()->setVariable('flashMessages', $this->flashMessenger()->getMessages());
 
         if ($this->isGranted('branch.read')) {
-            $em = $this->getEntityManager();
-            $qb = $em->createQueryBuilder();
-            $qb->select('COUNT(DISTINCT dr)')
-                ->from('Application\Entity\LiteipDevice', 'd')
-                ->innerJoin('d.drawing', 'dr')
-                ->innerJoin('dr.project', 'p')
-                ->innerJoin('d.status', 's')
-                ->andWhere('s.fault = true');
-            $alerts = $qb->getQuery()->getSingleScalarResult();
+            $alerts = 0;
+            $config = $this->getServiceLocator()->get('Config');
+            if (!empty($config) && is_array($config['liteip']) && !empty($config['liteip']['client'])) {
+                $clients = $config['liteip']['client'];
+                $em = $this->getEntityManager();
+
+                $qb2  = $em->createQueryBuilder();
+                $qb2
+                    ->select('lip.ProjectID')
+                    ->from('Project\Entity\Project', 'pp')
+                    ->innerJoin('pp.lipProject', 'lip')
+                    ->where($qb2->expr()->in('pp.client', $clients))
+                    ->andWhere('pp.test != true')
+                    ->andWhere('pp.cancelled != true');
+
+                $qb = $em->createQueryBuilder();
+                $qb->select('COUNT(DISTINCT d)')
+                    ->from('Application\Entity\LiteipDevice', 'd')
+                    ->innerJoin('d.drawing', 'dr')
+                    ->innerJoin('dr.project', 'p')
+                    ->innerJoin('d.status', 's')
+                    ->andWhere($qb->expr()->in('p.ProjectID', $qb2->getDQL()))
+                    ->andWhere('s.fault = true');
+                $alerts = $qb->getQuery()->getSingleScalarResult();
+
+                $this->layout()->setVariable('alerts', $alerts);
+            }
+
             $this->layout()->setVariable('alerts', $alerts);
+
         }
         
         return parent::onDispatch($e);

@@ -83,7 +83,7 @@ class BranchController extends AuthController
             }
 
             $qb = $em->createQueryBuilder();
-            $qb->select('p.ProjectID', 'COUNT(d) as alerts')
+            $qb->select('p.ProjectID, p.ProjectDescription', 'COUNT(d) as alerts')
                 ->from('Application\Entity\LiteipDevice', 'd')
                 ->innerJoin('d.drawing', 'dr')
                 ->innerJoin('dr.project', 'p')

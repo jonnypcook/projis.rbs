@@ -2386,6 +2386,7 @@ class ProjectitemController extends ProjectSpecificController
             $headEndLive = $this->params()->fromPost('headend-live', false);
             $designLoaded = $this->params()->fromPost('design-loaded', false);
             $asInstalled = $this->params()->fromPost('as-installed', false);
+            $awaitingSignoff = $this->params()->fromPost('awaiting-signoff', false);
             $commissioned = $this->params()->fromPost('commissioned', false);
 
             if ($headEndLive == 'on') {
@@ -2404,6 +2405,12 @@ class ProjectitemController extends ProjectSpecificController
                 $states[22] = 22;
             } else {
                 unset($states[22]);
+            }
+
+            if ($awaitingSignoff == 'on') {
+                $states[23] = 23;
+            } else {
+                unset($states[23]);
             }
 
             if ($commissioned == 'on') {

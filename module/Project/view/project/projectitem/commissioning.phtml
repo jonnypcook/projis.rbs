@@ -38,7 +38,9 @@ $this->inlineScript()
                                         foreach ($unassigned as $lipProject) {
                                             echo '<option value="' . $lipProject->getProjectID() . '">' . $lipProject->assemble() . '</option>';
                                         }
-                                        ?></select></td>
+                                        ?></select>
+                                    <button class="btn btn-primary " id="btn-synchronize" action="/branch/synchronize/?projects=true&drawings=true&flash=true"><i class="icon-refresh"></i></button>
+                                </td>
                             </tr>
                             </tbody>
                             <tfoot>
@@ -82,6 +84,8 @@ $this->inlineScript()
                                     '</td>' .
                                     '</tr>';
                             }
+                        } else {
+                            echo '<tr><td colspan="5">There are no drawings assigned to the current project and/or branch</td></tr>';
                         }
                         ?>
                         </tbody>
@@ -114,6 +118,10 @@ $this->inlineScript()
                             <tr>
                                 <td>Marked 'As-Installed' Drawings Received</td>
                                 <td><input type="checkbox" name="as-installed" <?php if ($project->hasState(22)) echo 'checked'; ?>/></td>
+                            </tr>
+                            <tr>
+                                <td>Part Commissioned - Awaiting Signoff</td>
+                                <td><input type="checkbox" name="awaiting-signoff" <?php if ($project->hasState(23)) echo 'checked'; ?>/></td>
                             </tr>
                             <tr>
                                 <td>Commissioned</td>

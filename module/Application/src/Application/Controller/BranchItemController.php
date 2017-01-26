@@ -377,15 +377,19 @@ class BranchItemController extends AuthController
             $weighting = 100;
         } else {
             if ($this->getProject()->hasState(20)) {
-                $weighting += 25;
+                $weighting += 20;
             }
 
             if ($this->getProject()->hasState(21)) {
-                $weighting += 25;
+                $weighting += 20;
             }
 
             if ($this->getProject()->hasState(22)) {
-                $weighting += 25;
+                $weighting += 20;
+            }
+
+            if ($this->getProject()->hasState(23)) {
+                $weighting += 20;
             }
         }
 

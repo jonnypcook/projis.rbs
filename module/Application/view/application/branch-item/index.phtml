@@ -21,11 +21,13 @@ $this->inlineScript()
             <h5>Weighting<span class="pull-right"><?php echo $weighting; ?>%</span></h5>
             <div id="slider-range-min" class="slider"></div>
             <div class="progress progress-striped progress-<?php
-            if ($weighting < 25) {
+            if ($weighting < 20) {
                 echo 'danger';
-            } elseif ($weighting < 50) {
+            } elseif ($weighting < 40) {
                 echo 'warning';
-            } elseif ($weighting < 75) {
+            } elseif ($weighting < 60) {
+                echo 'info';
+            } elseif ($weighting < 80) {
                 echo 'striped';
             } else {
                 echo 'success';
@@ -57,7 +59,7 @@ $this->inlineScript()
                             'default',
                         );
                         $labelIdx = 0;
-                        $validStates = array(20, 21, 22, 101);
+                        $validStates = array(20, 21, 22, 23, 101);
                         foreach ($project->getStates() as $state) {
                             if (!in_array($state->getStateId(), $validStates)) {
                                 continue;

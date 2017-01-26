@@ -175,23 +175,29 @@ class BranchController extends AuthController
                 $weighting = 100;
             } else {
                 if ($page->hasState(20)) {
-                    $weighting += 25;
+                    $weighting += 20;
                 }
 
                 if ($page->hasState(21)) {
-                    $weighting += 25;
+                    $weighting += 20;
                 }
 
                 if ($page->hasState(22)) {
-                    $weighting += 25;
+                    $weighting += 20;
+                }
+
+                if ($page->hasState(23)) {
+                    $weighting += 20;
                 }
             }
 
-            if ($weighting < 25) {
+            if ($weighting < 20) {
                 $statusCls = 'danger';
-            } elseif ($weighting < 50) {
+            } elseif ($weighting < 40) {
                 $statusCls = 'warning';
-            } elseif ($weighting < 75) {
+            } elseif ($weighting < 60) {
+                $statusCls = 'info';
+            } elseif ($weighting < 80) {
                 $statusCls = 'striped';
             } else {
                 $statusCls = 'success';
@@ -254,6 +260,44 @@ class BranchController extends AuthController
     public function pendingAction() {
         $this->setCaption('Pending Branches');
         return $this->getView();
+    }
+
+    /**
+     * synchronize branches (liteip) action
+     * @return JsonModel
+     */
+    public function synchronizeAction() {
+        try {
+            $projects = $this->params()->fromQuery('projects', false);
+            $drawings = $this->params()->fromQuery('drawings', false);
+            $devices = $this->params()->fromQuery('devices', false);
+
+            $flash = $this->params()->fromQuery('flash', false);
+
+            $liteIPService = $this->getLiteIpService();
+
+            if ($projects !== false) {
+                $liteIPService->synchronizeProjectsData();
+            }
+
+            if ($drawings !== false) {
+                $liteIPService->synchronizeDrawingsData();
+            }
+
+            if ($devices !== false) {
+                $liteIPService->synchronizeDevicesData();
+            }
+
+            if ($flash !== false) {
+                $this->flashMessenger()->addMessage(array(
+                    'The telemetry synchronization has completed successfully', 'Synchronization Completed'
+                ));
+            }
+
+            return new JsonModel(array('error' => false));
+        } catch (\Exception $ex) {
+            return new JsonModel(array('error' => true, 'info' => $ex->getMessage()));
+        }
     }
 
 }

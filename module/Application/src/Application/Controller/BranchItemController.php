@@ -174,7 +174,7 @@ class BranchItemController extends AuthController
         $em = $this->getEntityManager();
 
         if (!$this->request->isXmlHttpRequest()) {
-//            throw new \Exception('illegal request type');
+            throw new \Exception('illegal request type');
         }
 
         $drawingId = $this->params()->fromQuery('fDrawingId', false);
@@ -369,35 +369,22 @@ class BranchItemController extends AuthController
         );
         $deviceCount = $query->getSingleScalarResult();
 
-        $commissioned = $this->getProject()->hasState(101);
-        $installed = $this->getProject()->hasState(100);
 
-        $weighting = 0;
-        if ($commissioned) {
-            $weighting = 100;
-        } else {
-            if ($this->getProject()->hasState(20)) {
-                $weighting += 20;
-            }
+        $queryBuilder = $em->createQueryBuilder();
+        $queryBuilder
+            ->select('MAX(s.weighting) as weighting')
+            ->from('Project\Entity\Project', 'p')
+            ->leftJoin('p.states', 's')
+            ->andWhere('p.projectId = :pid')
+            ->setParameter('pid', $this->getProject()->getProjectId());
 
-            if ($this->getProject()->hasState(21)) {
-                $weighting += 20;
-            }
-
-            if ($this->getProject()->hasState(22)) {
-                $weighting += 20;
-            }
-
-            if ($this->getProject()->hasState(23)) {
-                $weighting += 20;
-            }
-        }
+        $weighting = $queryBuilder->getQuery()->getSingleScalarResult();
+        $weighting = empty($weighting) ? 0 : $weighting;
 
 
         return $this->getView()
             ->setVariable('weighting', $weighting)
-            ->setVariable('commissioned', $commissioned)
-            ->setVariable('installed', $installed)
+            ->setVariable('commissioned', ($weighting >= 100))
             ->setVariable('deviceCount', $deviceCount);
     }
 

@@ -68,10 +68,12 @@ class BranchController extends AuthController
         $queryBuilder = $em->createQueryBuilder();
 
         $queryBuilder
-            ->select('p')
+            ->select('p', 'MAX(s.weighting) as weighting')
             ->from('Project\Entity\Project', 'p')
             ->innerJoin('p.lipProject', 'lip')
             ->leftJoin('p.address', 'a')
+            ->leftJoin('p.states', 's')
+            ->groupBy('p.projectId')
             ->where($queryBuilder->expr()->in('p.client', ':cid'))
             ->andWhere('p.test != true')
             ->andWhere('p.cancelled != true')
@@ -80,19 +82,13 @@ class BranchController extends AuthController
         $commissioned = $this->params()->fromQuery('commissioned',false);
         $pending = $this->params()->fromQuery('pending',false);
         if ($commissioned) {
-            $qb2  = $em->createQueryBuilder();
-            $qb2->select('prj.projectId')
-                ->from('Project\Entity\Project', 'prj')
-                ->innerJoin('prj.states', 's')
-                ->where('s.stateId = 101');
-
-            $queryBuilder->andWhere($queryBuilder->expr()->in('p.projectId', $qb2->getDQL()));
+            $queryBuilder->andWhere('s.weighting = 100');
         } elseif ($pending) {
             $qb2  = $em->createQueryBuilder();
             $qb2->select('prj.projectId')
                 ->from('Project\Entity\Project', 'prj')
-                ->innerJoin('prj.states', 's')
-                ->where('s.stateId = 101');
+                ->innerJoin('prj.states', 'st')
+                ->where('st.weighting >= 100');
 
             $queryBuilder->andWhere($queryBuilder->expr()->notIn('p.projectId', $qb2->getDQL()));
         }
@@ -113,7 +109,7 @@ class BranchController extends AuthController
         /*
          * Ordering
          */
-        $aColumns = array('p.name','a.line1','a.postcode', 'p.weighting');
+        $aColumns = array('p.name','a.line1','a.postcode', 'weighting');
         $orderByP = $this->params()->fromQuery('iSortCol_0',false);
         $orderBy = array();
         if ($orderByP!==false)
@@ -169,27 +165,9 @@ class BranchController extends AuthController
         );/**/
 
 
-        foreach ($paginator as $page) {
-            $weighting = 0;
-            if ($page->hasState(101)) {
-                $weighting = 100;
-            } else {
-                if ($page->hasState(20)) {
-                    $weighting += 20;
-                }
-
-                if ($page->hasState(21)) {
-                    $weighting += 20;
-                }
-
-                if ($page->hasState(22)) {
-                    $weighting += 20;
-                }
-
-                if ($page->hasState(23)) {
-                    $weighting += 20;
-                }
-            }
+        foreach ($paginator as $pageGroup) {
+            $page = $pageGroup[0];
+            $weighting = empty($pageGroup['weighting']) ? 0 : $pageGroup['weighting'];
 
             if ($weighting < 20) {
                 $statusCls = 'danger';

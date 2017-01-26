@@ -52,6 +52,13 @@ class State implements InputFilterAwareInterface
     /**
      * @var integer
      *
+     * @ORM\Column(name="weighting", type="integer", nullable=true)
+     */
+    private $weighting;
+
+    /**
+     * @var integer
+     *
      * @ORM\Column(name="state_id", type="integer")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="IDENTITY")
@@ -109,6 +116,24 @@ class State implements InputFilterAwareInterface
         $this->stateId = $stateId;
         return $this;
     }
+
+    /**
+     * @return int
+     */
+    public function getWeighting()
+    {
+        return $this->weighting;
+    }
+
+    /**
+     * @param int $weighting
+     */
+    public function setWeighting($weighting)
+    {
+        $this->weighting = $weighting;
+    }
+
+
 
     /**
      * Populate from an array.

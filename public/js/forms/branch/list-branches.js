@@ -18,8 +18,7 @@ var Script = function () {
             null,
             null,
             null,
-            null,
-            //{ 'bSortable': false }
+            { 'bSortable': false }
         ],
         sAjaxSource: '/branch/list',
         fnServerParams: function (aoData) {

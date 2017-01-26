@@ -144,7 +144,13 @@ class LiteipProject implements InputFilterAwareInterface
     }
 
 
-
+    /**
+     * assemble project description
+     * @return string
+     */
+    public function assemble() {
+        return $this->getPostCode() . ($this->getProjectDescription() ? ' - ' . $this->getProjectDescription() : '');
+    }
 
 
 

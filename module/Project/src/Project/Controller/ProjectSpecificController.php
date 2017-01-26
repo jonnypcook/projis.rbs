@@ -258,6 +258,13 @@ class ProjectSpecificController extends AuthController
             )
         );
 
+        $pages [] = array(
+            'active'=>($standardMode && ($action=='commissioning')),
+            'label' => 'Commissioning',
+            'uri'=> '/client-'.$client->getClientId().'/project-'.$project->getProjectId().'/commissioning',
+            'title' => ucwords($project->getName()).' Commissioning',
+        );
+
         if ($this->getProject()->getLipProject()) {
 //            $url = 'http://portal.liteip.com/8p3/8p3login.aspx?E=' . $project->getTelemetry()->getUser() . '&P=' . $project->getTelemetry()->getPassword();
 //            $pages [] = array(

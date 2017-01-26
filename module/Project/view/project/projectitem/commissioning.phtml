@@ -1,0 +1,135 @@
+<?php
+$this->inlineScript()
+    ->appendFile('/js/forms/project/commissioning.js');
+
+?>
+<div class="relative">
+    <div id="commissioningLoader" class="loader"></div>
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="widget green">
+                <div class="widget-title">
+                    <h4><i class="icon-list"></i> Commissioning Progress</h4>
+                    <span class="tools">
+                    <a href="javascript:;" class="icon-chevron-down"></a>
+                    <a href="javascript:;" class="icon-remove"></a>
+                    </span>
+                </div>
+                <div class="widget-body relative">
+                    <form name="frmSaveStatus" id="frmUpdateLinkedBranch" class="form-nomargin" action="/client-<?php echo $project->getClient()->getClientId(); ?>/project-<?php echo $project->getProjectId(); ?>/commissioningupdatelinkedbranch/">
+                        <table class="table table-bordered table-striped" id="tbl_linked_branch">
+                            <thead>
+                            <tr>
+                                <th colspan="2">Linked Branch Configuration</th>
+                            </tr>
+                            <tr>
+                                <td colspan="2">The project needs to be linked to a branch that has been uploaded from the telemetry system.  To link to a branch select the branch from the drop-down list
+                                    and click on the &quot;update linked branch&quot; button<br /><span class="text-error">Warning:</span> only 1 project can be linked to a specific branch - please ensure that the selected branch is correct before updating</td>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <th style="width: 200px">Linked Branch</th>
+                                <td ><?php echo $project->getLipProject() ? $project->getLipProject()->assemble() : 'none'; ?></td>
+                            </tr>
+                            <tr>
+                                <th style="vertical-align: middle;">Assigned Branch</th>
+                                <td ><select style="margin: 0" name="ProjectID" id="ProjectID"><option>Please Select</option><option value="0">Un-Link Branch</option><?php
+                                        foreach ($unassigned as $lipProject) {
+                                            echo '<option value="' . $lipProject->getProjectID() . '">' . $lipProject->assemble() . '</option>';
+                                        }
+                                        ?></select></td>
+                            </tr>
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td colspan="2"><button class="btn btn-primary" id="btn-update-linked-branch"><i class="icon-warning-sign"></i> Update Linked Branch</button></td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </form>
+                    <div class="space20"></div>
+                    <table class="table table-bordered table-striped" id="tbl_status">
+                        <thead>
+                        <tr>
+                            <th colspan="5">Branch Drawings</th>
+                        </tr>
+                        <tr>
+                            <td colspan="5">Branch drawings need to be linked to the consumed drawing information.  Below are displayed the drawings that have been uploaded from the branch telemetry system.  To link an image to
+                                a drawing click on the upload button.  To de-activate a drawing click on the cross button.  To activate a drawing click on the tick button.</td>
+                        </tr>
+                        <tr>
+                            <th>Name</th>
+                            <th>Width</th>
+                            <th>Height</th>
+                            <th>Active</th>
+                            <th>Options</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php
+                        if ($drawings) {
+                            foreach ($drawings as $drawing) {
+                                echo '<tr>' .
+                                    '<td>' . $drawing->getDrawing() . '</td>' .
+                                    '<td>' . $drawing->getWidth() . 'px</td>' .
+                                    '<td>' . $drawing->getHeight() . 'px</td>' .
+                                    '<td>' . ($drawing->isActivated() ? 'Yes' : 'No') . '</td>' .
+                                    '<td><button class="btn btn-primary btn-small" title="Upload image"><i class="icon-upload-alt"></i></button> ' .
+                                    ($drawing->isActivated() ? '<button title="Deactivate image" class="btn btn-danger btn-small"><i class="icon-remove"></i></button>' :
+                                        '<button title="Activate image" class="btn btn-success btn-small"><i class="icon-check"></i></button>'
+                                    ) .
+                                    '</td>' .
+                                    '</tr>';
+                            }
+                        }
+                        ?>
+                        </tbody>
+                    </table>
+
+                    <div class="space20"></div>
+                    <form name="frmSaveStatus" id="frmSaveStatus" class="form-nomargin" action="/client-<?php echo $project->getClient()->getClientId(); ?>/project-<?php echo $project->getProjectId(); ?>/commissioningsavestatus/">
+                        <table class="table table-bordered table-striped" id="tbl_status">
+                            <thead>
+                            <tr>
+                                <th colspan="2">Commissioning State</th>
+                            </tr>
+                            <tr>
+                                <td colspan="2">The commissioning state options determine the appearance and status of the branches on the customer portal.</td>
+                            </tr>
+                            <tr>
+                                <th style="width: 250px">State Name</th>
+                                <th>Activated</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>Head End Live</td>
+                                <td><input type="checkbox" name="headend-live" <?php if ($project->hasState(20)) echo 'checked'; ?>/></td>
+                            </tr>
+                            <tr>
+                                <td>Design Loaded</td>
+                                <td><input type="checkbox" name="design-loaded" <?php if ($project->hasState(21)) echo 'checked'; ?>/></td>
+                            </tr>
+                            <tr>
+                                <td>Marked 'As-Installed' Drawings Received</td>
+                                <td><input type="checkbox" name="as-installed" <?php if ($project->hasState(22)) echo 'checked'; ?>/></td>
+                            </tr>
+                            <tr>
+                                <td>Commissioned</td>
+                                <td><input type="checkbox" name="commissioned" <?php if ($project->hasState(101)) echo 'checked'; ?>/></td>
+                            </tr>
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td colspan="2"><button class="btn btn-primary" id="btn-save-status"><i class="icon-warning-sign"></i> Save Status</button></td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

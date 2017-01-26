@@ -2323,5 +2323,164 @@ class ProjectitemController extends ProjectSpecificController
             return new JsonModel(array('err'=>true, 'info'=>$e->getMessage()));/**/
         }    
     }
+
+
+
+    /**
+     * commissioning action
+     * @return \Zend\View\Model\ViewModel
+     */
+    public function commissioningAction()
+    {
+        $this->setCaption('Commissioning');
+
+        $em = $this->getEntityManager();
+
+        $qb2  = $em->createQueryBuilder();
+        $qb2->select('lip.ProjectID')
+            ->from('Project\Entity\Project', 'p')
+            ->innerJoin('p.lipProject', 'lip');
+
+
+        $qb = $em->createQueryBuilder();
+        $qb->select('l')
+            ->from('Application\Entity\LiteipProject', 'l')
+            ->andWhere('l.CustomerGroup = 19')
+            ->andWhere($qb->expr()->notIn('l.ProjectID', $qb2->getDQL()));
+
+        $unassigned = $qb->getQuery()->getResult();
+
+        if ($this->getProject()->getLipProject()) {
+            $qb = $em->createQueryBuilder();
+            $qb->select('d')
+                ->from('Application\Entity\LiteipDrawing', 'd')
+                ->andWhere('d.project = :pid')
+                ->setParameter('pid', $this->getProject()->getLipProject()->getProjectID());
+            $drawings = $qb->getQuery()->getResult();
+        } else {
+            $drawings = array();
+        }
+
+        return $this->getView()
+            ->setVariable('drawings', $drawings)
+            ->setVariable('unassigned', $unassigned);
+    }
+
+    /**
+     * (commissioning) save status action
+     * @return JsonModel
+     */
+    public function commissioningSaveStatusAction() {
+        try {
+            $em = $this->getEntityManager();
+
+            if (!$this->request->isXmlHttpRequest()) {
+                throw new \Exception('illegal request type');
+            }
+
+            $states = array();
+            foreach($this->getProject()->getStates() as $state) {
+                $states[$state->getStateId()] = $state->getStateId();
+            }
+
+            $headEndLive = $this->params()->fromPost('headend-live', false);
+            $designLoaded = $this->params()->fromPost('design-loaded', false);
+            $asInstalled = $this->params()->fromPost('as-installed', false);
+            $commissioned = $this->params()->fromPost('commissioned', false);
+
+            if ($headEndLive == 'on') {
+                $states[20] = 20;
+            } else {
+                unset($states[20]);
+            }
+
+            if ($designLoaded == 'on') {
+                $states[21] = 21;
+            } else {
+                unset($states[21]);
+            }
+
+            if ($asInstalled == 'on') {
+                $states[22] = 22;
+            } else {
+                unset($states[22]);
+            }
+
+            if ($commissioned == 'on') {
+                $states[101] = 101;
+            } else {
+                unset($states[101]);
+            }
+
+            $hydrator = new DoctrineHydrator($em,'Project\Entity\Project');
+            $hydrator->hydrate(array('states'=>$states), $this->getProject());
+
+            $this->getEntityManager()->persist($this->getProject());
+            $this->getEntityManager()->flush();
+
+
+
+            return new JsonModel(array('error' => false));
+        } catch (\Exception $ex) {
+            return new JsonModel(array('error' => true, 'info' => $ex->getMessage()));
+        }
+    }
+
+    /**
+     * (commissioning) update linked branch
+     * @return JsonModel
+     */
+    public function commissioningUpdateLinkedBranchAction () {
+        try {
+            $em = $this->getEntityManager();
+
+            if (!$this->request->isXmlHttpRequest()) {
+                throw new \Exception('illegal request type');
+            }
+
+            $states = array();
+            foreach($this->getProject()->getStates() as $state) {
+                $states[$state->getStateId()] = $state->getStateId();
+            }
+
+            $ProjectID = $this->params()->fromPost('ProjectID', false);
+
+            if (empty($ProjectID)) {
+                unset($states[20]);
+                $hydration = array('states'=>$states, 'lipProject' => null);
+            } else {
+                //check for project already in use
+                $qb = $em->createQueryBuilder();
+                $qb->select('p')
+                    ->from('Project\Entity\Project', 'p')
+                    ->andWhere('p.lipProject = :pid')
+                    ->setParameter('pid', $ProjectID);
+
+                $lipProjects = $qb->getQuery()->getResult();
+
+                if ($lipProjects) {
+                    $lipProject = array_shift($lipProjects);
+                    throw new \Exception('Branch is already linked to the project: ' . $lipProject->getName());
+                }
+
+                $states[20] = 20;
+                $hydration = array('lipProject'=>$ProjectID, 'states'=>$states);
+            }
+
+            $hydrator = new DoctrineHydrator($em,'Project\Entity\Project');
+            $hydrator->hydrate($hydration, $this->getProject());
+
+            $this->getEntityManager()->persist($this->getProject());
+            $this->getEntityManager()->flush();
+
+            $this->flashMessenger()->addMessage(array(
+                'The project linked branch has been updated successfully', 'Linked Branch Updated'
+            ));
+
+            return new JsonModel(array('error' => false));
+        } catch (\Exception $ex) {
+            return new JsonModel(array('error' => true, 'info' => $ex->getMessage()));
+        }
+    }
     
 }

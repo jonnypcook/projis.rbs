@@ -194,9 +194,9 @@ class BranchController extends AuthController
             if ($weighting < 20) {
                 $statusCls = 'danger';
             } elseif ($weighting < 40) {
-                $statusCls = 'warning';
+                $statusCls = 'danger';
             } elseif ($weighting < 60) {
-                $statusCls = 'info';
+                $statusCls = 'warning';
             } elseif ($weighting < 80) {
                 $statusCls = 'striped';
             } else {

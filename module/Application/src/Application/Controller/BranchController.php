@@ -51,7 +51,64 @@ class BranchController extends AuthController
         $this->clients = $clients;
     }
 
+    /**
+     * list alerts
+     * @return JsonModel
+     * @throws \Exception
+     */
+    public function listAlertsAction() {
+        try{
+            $em = $this->getEntityManager();
 
+            if (!$this->request->isXmlHttpRequest()) {
+                throw new \Exception('illegal request type');
+            }
+
+            $qb = $em->createQueryBuilder();
+            $qb
+                ->select('lip.ProjectID, p.name, p.projectId')
+                ->from('Project\Entity\Project', 'p')
+                ->innerJoin('p.lipProject', 'lip')
+                ->where($qb->expr()->in('p.client', ':cid'))
+                ->andWhere('p.test != true')
+                ->andWhere('p.cancelled != true')
+                ->setParameter('cid', $this->getClients());
+            $projects = array();
+
+            foreach ($qb->getQuery()->getResult() as $result) {
+                $projects[$result['ProjectID']] = array (
+                    'name' =>$result['name'],
+                    'projectId' =>$result['projectId'],
+                );
+            }
+
+            $qb = $em->createQueryBuilder();
+            $qb->select('p.ProjectID', 'COUNT(d) as alerts')
+                ->from('Application\Entity\LiteipDevice', 'd')
+                ->innerJoin('d.drawing', 'dr')
+                ->innerJoin('dr.project', 'p')
+                ->innerJoin('d.status', 's')
+                ->groupBy('p.ProjectID')
+                ->andWhere('s.fault = true');
+
+            $branches = array();
+            $totalAlerts = 0;
+            foreach ($qb->getQuery()->getResult() as $result) {
+                if (empty($projects[$result['ProjectID']])) {
+                    continue;
+                }
+
+                $totalAlerts += $result['alerts'];
+                $branches[] = $projects[$result['ProjectID']] + array('count' => $result['alerts']);
+            }
+
+            return new JsonModel(array ('error' => false, 'branches' => $branches, 'total' => $totalAlerts));
+
+        }
+        catch (\Exception $ex) {
+            return new JsonModel(array('error' => true, 'info' => $ex->getMessage()));
+        }
+    }
 
     /**
      * list devices for liteip drawing

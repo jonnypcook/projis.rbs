@@ -50,6 +50,19 @@ abstract class AuthController extends AbstractActionController
         $this->setUser($auth->getIdentity());
 
         $this->layout()->setVariable('flashMessages', $this->flashMessenger()->getMessages());
+
+        if ($this->isGranted('branch.read')) {
+            $em = $this->getEntityManager();
+            $qb = $em->createQueryBuilder();
+            $qb->select('COUNT(DISTINCT dr)')
+                ->from('Application\Entity\LiteipDevice', 'd')
+                ->innerJoin('d.drawing', 'dr')
+                ->innerJoin('dr.project', 'p')
+                ->innerJoin('d.status', 's')
+                ->andWhere('s.fault = true');
+            $alerts = $qb->getQuery()->getSingleScalarResult();
+            $this->layout()->setVariable('alerts', $alerts);
+        }
         
         return parent::onDispatch($e);
     }

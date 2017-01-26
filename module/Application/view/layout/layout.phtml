@@ -113,40 +113,13 @@
                        <li class="dropdown" id="header_notification_bar">
                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
 
-                               <i class="icon-bell-alt"></i>
-                               <span class="badge badge-warning">0</span>
+                               <i class="icon-warning-sign"></i>
+                               <span class="badge badge-important alert-count"><?php echo $alerts ? $alerts : 0; ?></span>
                            </a>
-                           <ul class="dropdown-menu extended notification">
-                               <li>
-                                   <p>You have 0 new notifications</p>
+                           <ul class="dropdown-menu extended notification" id="alert-items-header">
+                               <li >
+                                   <p>You have no notifications</p>
                                </li>
-                               <!--<li>
-                                   <p>You have 3 new notifications</p>
-                               </li>
-                               <li>
-                                   <a href="/client-615/project-471/">
-                                       <span class="label label-default"><i class="icon-phone"></i></span>
-                                       Call 00615-00471
-                                       <span class="small italic">today</span>
-                                   </a>
-                               </li>
-                               <li>
-                                   <a href="/client-615/project-1035/">
-                                       <span class="label label-warning"><i class="icon-bell"></i></span>
-                                       Review project status.
-                                       <span class="small italic">1 Day</span>
-                                   </a>
-                               </li>
-                               <li>
-                                   <a href="/client-615/project-1036/">
-                                       <span class="label label-important"><i class="icon-bolt"></i></span>
-                                       Create follow-up Proposal.
-                                       <span class="small italic">3 Days</span>
-                                   </a>
-                               </li>
-                               <li>
-                                   <a href="#">See all notifications</a>
-                               </li><!-- -->
                            </ul>
                        </li>
                        <!-- END NOTIFICATION DROPDOWN -->
@@ -249,6 +222,7 @@
     // common script for all pages            
     ->prependFile('/js/forms/mail/dashboard.js')
     ->prependFile('/js/forms/task/dashboard.js')
+    ->prependFile('/js/forms/alerts/dashboard.js')
     ->prependFile('/js/common-scripts.js?20150319')
 
     ->prependFile(

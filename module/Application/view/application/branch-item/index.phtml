@@ -28,6 +28,8 @@ $this->inlineScript()
             } elseif ($weighting < 60) {
                 echo 'warning';
             } elseif ($weighting < 80) {
+                echo 'info';
+            } elseif ($weighting < 100) {
                 echo 'striped';
             } else {
                 echo 'success';

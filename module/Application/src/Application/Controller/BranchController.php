@@ -198,6 +198,8 @@ class BranchController extends AuthController
             } elseif ($weighting < 60) {
                 $statusCls = 'warning';
             } elseif ($weighting < 80) {
+                $statusCls = 'info';
+            } elseif ($weighting < 100) {
                 $statusCls = 'striped';
             } else {
                 $statusCls = 'success';

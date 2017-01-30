@@ -244,6 +244,11 @@ class LiteIpService
 
     }
 
+    /**
+     * remove devices that are not in $deviceIDs for drawing $drawingId
+     * @param $deviceIds
+     * @param $drawingId
+     */
     protected function tidyDevices($deviceIds, $drawingId) {
         $em = $this->getEntityManager();
         $queryBuilder = $em->createQueryBuilder();
@@ -257,8 +262,10 @@ class LiteIpService
             ->setParameter('DeviceID', $deviceIds);
 
         foreach ($queryBuilder->getQuery()->getResult() as $device) {
-            echo $device->getDeviceID(), chr(13) . chr(10);
+            $em->remove($device);
         }
+
+        $em->flush();
     }
 
     /**

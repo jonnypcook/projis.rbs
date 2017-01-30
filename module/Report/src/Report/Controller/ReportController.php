@@ -128,6 +128,8 @@ class ReportController extends AuthController
                     $data['projects'][$projectName]['count']['device']++;
                     $data['count']['device']++;
 
+                    $timestamp = empty($device->getLastE3StatusDate()) ? 0 : $device->getLastE3StatusDate()->getTimestamp();
+                    $diff = $now->getTimestamp() - $timestamp;
 
                     if ($device->getStatus() && $device->getStatus()->isFault()) {
                         $data['count']['error']++;
@@ -137,15 +139,14 @@ class ReportController extends AuthController
                             $device->getDeviceID(),
                             $device->getDeviceSN(),
                             $device->getStatus()->getDescription(),
-                            empty($device->getLastE3StatusDate()) ? 'Unknown' : $device->getLastE3StatusDate()->format('d/m/Y H:i:s')
+                            empty($device->getLastE3StatusDate()) ? 'Unknown' : $device->getLastE3StatusDate()->format('d/m/Y H:i:s'),
+                            floor($diff / (60 * 60 * 24))
                         );
                     } else {
                         $data['count']['passed']++;
                         $data['projects'][$projectName]['count']['passed']++;
                     }
 
-                    $timestamp = empty($device->getLastE3StatusDate()) ? 0 : $device->getLastE3StatusDate()->getTimestamp();
-                    $diff = $now->getTimestamp() - $timestamp;
                     if($device->isIsE3() && (floor($diff / (60 * 60 * 24)) > 0)) { // if not tested for 24 hours
                         $data['count']['warning']++;
                         $data['projects'][$projectName]['count']['warning']++;
@@ -154,7 +155,8 @@ class ReportController extends AuthController
                             $device->getDeviceID(),
                             $device->getDeviceSN(),
                             floor($diff / (60 * 60 * 24)),
-                            empty($device->getLastE3StatusDate()) ? '' : $device->getLastE3StatusDate()->format('d/m/Y H:i:s')
+                            empty($device->getLastE3StatusDate()) ? '' : $device->getLastE3StatusDate()->format('d/m/Y H:i:s'),
+                            floor($diff / (60 * 60 * 24))
                         );
                     }
                 }
@@ -167,6 +169,7 @@ class ReportController extends AuthController
                     $csv[] = array('"Error Count"', $data['count']['error']);
                     $csv[] = array();
 
+                    $csv[] = array('"Device Error Breakdown"');
                     $csv[] = array('"Project"', '"Floor"', '"Serial"', '"Status"', '"Last Tested"');
 
                     foreach ($data['projects'] as $projectName => $project) {
@@ -181,6 +184,27 @@ class ReportController extends AuthController
 
                             foreach ($drawing['errors'] as $error) {
                                 $csv[] = array('"' . $projectName . '"', '"' . $drawingName . '"', '"' . $error[1] . '"', '"' . $error[2] . '"', '"' . $error[3] . '"');
+                            }
+                        }
+                    }
+
+                    if ($this->isGranted('branch.warnings.read')) {
+                        $csv[] = array();
+                        $csv[] = array('"Device Warning Breakdown"');
+                        $csv[] = array('"Project"', '"Floor"', '"Serial"', '"Status"', '"Last Tested"');
+                        foreach ($data['projects'] as $projectName => $project) {
+                            if (empty($project['drawings'])) {
+                                continue;
+                            }
+
+                            foreach ($project['drawings'] as $drawingName => $drawing) {
+                                if (empty($drawing['warnings'])) {
+                                    continue;
+                                }
+
+                                foreach ($drawing['warnings'] as $warning) {
+                                    $csv[] = array('"' . $projectName . '"', '"' . $drawingName . '"', '"' . $warning[1] . '"', '"' . $warning[4] . ' Days Untested"', '"' . $warning[3] . '"');
+                                }
                             }
                         }
                     }

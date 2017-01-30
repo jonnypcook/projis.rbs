@@ -398,25 +398,10 @@ class BranchItemController extends AuthController
                 ->innerJoin('d.drawing', 'dr')
                 ->innerJoin('d.status', 's')
                 ->andWhere('dr.project = ' . $this->getProject()->getLipProject()->getProjectID())
-                ->andWhere('d.IsE3 = true')
-                ->andWhere('DATE_DIFF(d.LastE3StatusDate, CURRENT_TIMESTAMP()) < 1');
+                //->andWhere('d.IsE3 = true')
+                ->andWhere('DATE_DIFF(CURRENT_TIMESTAMP(), d.LastE3StatusDate) >= 1');
             $warnings = $qb->getQuery()->getSingleScalarResult();
             $this->getView()->setVariable('warnings', $warnings);
-
-//            $qb = $em->createQueryBuilder();
-//            $qb->select('DATE_DIFF(d.LastE3StatusDate, CURRENT_TIMESTAMP())')
-//                ->from('Application\Entity\LiteipDevice', 'd')
-//                ->innerJoin('d.drawing', 'dr')
-//                ->innerJoin('d.status', 's')
-//                ->andWhere('dr.project = ' . $this->getProject()->getLipProject()->getProjectID())
-//                ->andWhere('d.IsE3 = true')
-//                ->andWhere(' < 1');
-//
-//            foreach($qb->getQuery()->getResult() as $result) {
-//                echo $result->
-//            }
-//
-//            die();
         }
 
         return $this->getView()

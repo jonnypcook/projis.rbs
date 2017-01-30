@@ -16,10 +16,12 @@
         <th>Error Count</th>
         <td><?php echo $data['count']['error']; ?></td>
     </tr>
-<!--    <tr>-->
-<!--        <th>Warning Count</th>-->
-<!--        <td>--><?php //echo $data['count']['warning']; ?><!--</td>-->
-<!--    </tr>-->
+    <?php if ($this->isGranted('branch.warnings.read')) { ?>
+    <tr>
+        <th>Warning Count</th>
+        <td><?php echo $data['count']['warning']; ?></td>
+    </tr>
+    <?php } ?>
     </tbody>
 </table>
 
@@ -61,3 +63,45 @@
 ?>
     </tbody>
 </table>
+
+<?php if ($this->isGranted('branch.warnings.read')) { ?>
+    <div class="space20"></div>
+    <table class="table table-bordered table-striped" id="emergency_warnings_tbl" >
+        <thead>
+        <tr>
+            <th colspan="4" class="text-warning"><i class="icon-warning-sign"></i> Warnings Breakdown</th>
+        </tr>
+        <tr>
+            <th>Project</th>
+            <th>Floor</th>
+            <th>Serial</th>
+            <th>Days Since Last Test</th>
+            <th>Last Tested</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php
+        foreach ($data['projects'] as $projectName => $project) {
+            if (empty($project['drawings'])) {
+                continue;
+            }
+
+            foreach ($project['drawings'] as $drawingName => $drawing) {
+                if (empty($drawing['warnings'])) {
+                    continue;
+                }
+
+                foreach ($drawing['warnings'] as $warning) {
+                    echo '<tr><td>' . $projectName . '</td>' .
+                        '<td>' . $drawingName . '</td>' .
+                        '<td>' . $warning[1] . '</td>' .
+                        '<td>' . $warning[2] . '</td>' .
+                        '<td>' . $warning[3] . '</td></tr>';
+                }
+            }
+        }
+        ?>
+        </tbody>
+    </table>
+<?php } ?>
+

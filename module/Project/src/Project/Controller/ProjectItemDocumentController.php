@@ -1415,13 +1415,15 @@ class ProjectitemdocumentController extends ProjectSpecificController
             $diff = $now->getTimestamp() - $timestamp;
 
             $summary['total']++;
-            $warn = floor($diff / (60 * 60 * 24)) > 0;
+            $daysCI = floor($diff / (60 * 60 * 24));
+            $warn = $daysCI > 0;
             $err = $device->getStatus() && $device->getStatus()->isFault();
             $breakdown[preg_replace('/[.][^.]+$/', '', $device->getDrawing()->getDrawing())][] = array(
                 $device->getDeviceSN(),
                 $err ? $device->getStatus()->getDescription() : 'No Fault',
                 empty($device->getLastE3StatusDate()) ? '"Unknown"' : '"' . $device->getLastE3StatusDate()->format('d/m/Y H:i:s') .'"',
-                $device->getStatus() ? $device->getStatus()->isFault() : false
+                $device->getStatus() ? $device->getStatus()->isFault() : false,
+                $daysCI
             );
 
             if ($err) {
@@ -1483,13 +1485,14 @@ class ProjectitemdocumentController extends ProjectSpecificController
 
             if (!empty($breakdown)) {
                 $data[] = array();
-                $data[] = array('"Floor"', '"Serial"', '"Status"', '"Last Status Report Date"');
+                $data[] = array('"Floor"', '"Serial"', '"Status"', '"Last Status Report Date"', '"Days"');
                 foreach ($breakdown as $drawingName => $drawingItems) {
                     foreach ($drawingItems as $bdData) {
-                        $data[] = array('"' . $drawingName . '"', $bdData[0], $bdData[1], $bdData[2]);
+                        $data[] = array('"' . $drawingName . '"', $bdData[0], $bdData[1], $bdData[2], $bdData[4]);
                     }
                 }
             }
+
             $response = $this->prepareCSVResponse($data, $filename . '.csv');
 
             return $response;

@@ -93,7 +93,7 @@
     echo "<tr><td>No Fault</td><td class=\"right\">{$summary['nofault']['cnt']}</td><td class=\"right\">{$summary['nofault']['cnt']}</td><td class=\"right\">0</td>" .
         ($warnings ? "<td class=\"right\">{$summary['nofault']['warn']}</td>" : "") . "</tr>";
     echo "<tr><td>Total</td><td class=\"right\">{$summary['total']}</td><td class=\"right\">" . ($summary['total'] - $summary['errors']) ."</td><td class=\"right\">{$summary['errors']}</td>" .
-        ($warnings ? "<td class=\"right\">{$summary['warning']}</td>" : "") . "</tr>";
+        ($warnings ? "<td class=\"right\">{$summary['warnings']}</td>" : "") . "</tr>";
     ?>
     </tbody>
 </table>

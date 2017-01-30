@@ -207,11 +207,14 @@ class LiteIpService
             return;
         }
 
+
         foreach ($drawings as $drawing) {
             $response = $this->getDeviceData($drawing->getDrawingId(), 0);
             if ($response->getStatusCode() === 200) {
                 $devices = json_decode($response->getBody(), true);
+                $deviceIds = array();
                 foreach ($devices as $device) {
+                    $deviceIds[] = $device['DeviceID'];
                     $liteipDevice = $em->find('Application\Entity\LiteipDevice', $device['DeviceID']);
                     if (!($liteipDevice instanceof LiteipDevice)) {
                         $liteipDevice = new LiteipDevice();
@@ -234,9 +237,28 @@ class LiteIpService
                     $em->persist($liteipDevice);
                 }
                 $em->flush();
+
+                $this->tidyDevices($deviceIds, $drawing->getDrawingId());
             }
         }
 
+    }
+
+    protected function tidyDevices($deviceIds, $drawingId) {
+        $em = $this->getEntityManager();
+        $queryBuilder = $em->createQueryBuilder();
+
+        $queryBuilder
+            ->select('d')
+            ->from('Application\Entity\LiteipDevice', 'd')
+            ->andWhere('d.drawing = :DrawingID')
+            ->andWhere($queryBuilder->expr()->notIn('d.DeviceID', ':DeviceID'))
+            ->setParameter('DrawingID', $drawingId)
+            ->setParameter('DeviceID', $deviceIds);
+
+        foreach ($queryBuilder->getQuery()->getResult() as $device) {
+            echo $device->getDeviceID(), chr(13) . chr(10);
+        }
     }
 
     /**

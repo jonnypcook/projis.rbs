@@ -99,10 +99,16 @@ $this->inlineScript()
                 </tr>
                 <tr>
                     <td >
-                        Notes
+                        Errors <?php if ($this->isGranted('branch.warnings.read')) { echo ' / Warnings'; } ?>
                     </td>
                     <td>
-                        No notes added to project
+                        <?php
+                        echo $errors;
+                        if ($this->isGranted('branch.warnings.read')) {
+                            echo ' / ' . $warnings;
+                        }
+
+                        ?>
                     </td>
                 </tr>
                 </tbody>

@@ -381,8 +381,46 @@ class BranchItemController extends AuthController
         $weighting = $queryBuilder->getQuery()->getSingleScalarResult();
         $weighting = empty($weighting) ? 0 : $weighting;
 
+        $qb = $em->createQueryBuilder();
+        $qb->select('COUNT(DISTINCT d)')
+            ->from('Application\Entity\LiteipDevice', 'd')
+            ->innerJoin('d.drawing', 'dr')
+            ->innerJoin('d.status', 's')
+            ->andWhere('dr.project = ' . $this->getProject()->getLipProject()->getProjectID())
+            ->andWhere('s.fault = true');
+        $errors = $qb->getQuery()->getSingleScalarResult();
+
+        if ($this->isGranted('branch.warnings.read')) {
+
+            $qb = $em->createQueryBuilder();
+            $qb->select('COUNT(DISTINCT d)')
+                ->from('Application\Entity\LiteipDevice', 'd')
+                ->innerJoin('d.drawing', 'dr')
+                ->innerJoin('d.status', 's')
+                ->andWhere('dr.project = ' . $this->getProject()->getLipProject()->getProjectID())
+                ->andWhere('d.IsE3 = true')
+                ->andWhere('DATE_DIFF(d.LastE3StatusDate, CURRENT_TIMESTAMP()) < 1');
+            $warnings = $qb->getQuery()->getSingleScalarResult();
+            $this->getView()->setVariable('warnings', $warnings);
+
+//            $qb = $em->createQueryBuilder();
+//            $qb->select('DATE_DIFF(d.LastE3StatusDate, CURRENT_TIMESTAMP())')
+//                ->from('Application\Entity\LiteipDevice', 'd')
+//                ->innerJoin('d.drawing', 'dr')
+//                ->innerJoin('d.status', 's')
+//                ->andWhere('dr.project = ' . $this->getProject()->getLipProject()->getProjectID())
+//                ->andWhere('d.IsE3 = true')
+//                ->andWhere(' < 1');
+//
+//            foreach($qb->getQuery()->getResult() as $result) {
+//                echo $result->
+//            }
+//
+//            die();
+        }
 
         return $this->getView()
+            ->setVariable('errors', $errors)
             ->setVariable('weighting', $weighting)
             ->setVariable('commissioned', ($weighting >= 100))
             ->setVariable('deviceCount', $deviceCount);

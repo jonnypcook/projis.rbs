@@ -190,7 +190,7 @@ return [
                 [
                      'controller' => 'Project\Controller\ProjectItemDocumentController',
                      'actions'    => ['exportemergencyreport'],
-                     'permissions'      => ['branch.read']
+                     'permissions'      => []
                 ],
 
                 [

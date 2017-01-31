@@ -215,10 +215,19 @@ return array(
             'routes' => array(
                 'synchronize' => array(
                     'options' => array(
-                        'route'    => 'synchronizeliteip [rbs|all|non-rbs]:mode [--verbose|-v] [-t|--test]',
+                        'route'    => 'synchronizeliteip [rbs|all]:mode [--verbose|-v] [-t|--test]',
                         'defaults' => array(
                             'controller' => 'Application\Controller\Console',
                             'action'     => 'synchronizeliteip'
+                        )
+                    )
+                ),
+                'emergency' => array(
+                    'options' => array(
+                        'route'    => 'emergency [rbs|all]:mode [--verbose|-v] [-t|--test] [-s|--synchronize] ',
+                        'defaults' => array(
+                            'controller' => 'Application\Controller\Console',
+                            'action'     => 'emergency'
                         )
                     )
                 )

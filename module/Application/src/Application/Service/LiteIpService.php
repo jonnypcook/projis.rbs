@@ -120,17 +120,22 @@ class LiteIpService
 
     /**
      * @param bool|false $update
+     * @param bool|false $customerGroup
      * @throws \Doctrine\ORM\ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      * @throws \Doctrine\ORM\TransactionRequiredException
      */
-    public function synchronizeProjectsData($update = false) {
+    public function synchronizeProjectsData($update = false, $customerGroup = false) {
         $response = $this->getProjectsData();
         $em = $this->getEntityManager();
 
         if ($response->getStatusCode() === 200) {
             $projects = json_decode($response->getBody(), true);
             foreach ($projects as $project) {
+                if (!empty($customerGroup) && ($customerGroup != $project['CustomerGroup'])) {
+                    continue;
+                }
+
                 $liteIpProject = $em->find('Application\Entity\LiteipProject', $project['ProjectID']);
                 if (!($liteIpProject instanceof LiteipProject)) {
                     $liteIpProject = new LiteipProject();
@@ -148,15 +153,21 @@ class LiteIpService
 
     /**
      * @param bool|false $projectId
+     * @param bool|false $customerGroup
      * @throws \Doctrine\ORM\ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      * @throws \Doctrine\ORM\TransactionRequiredException
      */
-    public function synchronizeDrawingsData($projectId = false) {
+    public function synchronizeDrawingsData($projectId = false, $customerGroup = false) {
         $em = $this->getEntityManager();
         $sql = "SELECT p FROM Application\Entity\LiteipProject p";
+
         if (!empty($projectId)) {
             $sql .= " WHERE p.ProjectId = {$projectId}";
+        }
+
+        if (!empty($customerGroup)) {
+            $sql .= " WHERE p.CustomerGroup = {$customerGroup}";
         }
         $query = $em->createQuery( $sql );
         $projects = $query->getResult();
@@ -186,18 +197,22 @@ class LiteIpService
     }
 
     /**
+     * @param bool|false $drawingId
      * @param bool|false $projectId
+     * @param bool|false $customerGroup
      * @throws \Doctrine\ORM\ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      * @throws \Doctrine\ORM\TransactionRequiredException
      */
-    public function synchronizeDevicesData($drawingId = false, $projectId = false) {
+    public function synchronizeDevicesData($drawingId = false, $projectId = false, $customerGroup = false) {
         $em = $this->getEntityManager();
         $sql = "SELECT d FROM Application\Entity\LiteipDrawing d";
         if (!empty($drawingId)) {
             $sql .= " WHERE d.DrawingID = {$drawingId}";
         } elseif (!empty($projectId)) {
             $sql .= " WHERE d.project = {$projectId}";
+        } elseif (!empty($customerGroup)) {
+            $sql .= " JOIN project p WHERE p.CustomerGroup = {$customerGroup}";
         }
 
         $query = $em->createQuery( $sql );

@@ -319,7 +319,7 @@ class BranchController extends AuthController
             $projects[$result['ProjectID']][5] = $result['alerts'];
         }
 
-        if ($this->isGranted('branch.read')) {
+        if ($this->isGranted('branch.warnings.read')) {
             $qb = $em->createQueryBuilder();
             $qb->select('p.ProjectID, p.ProjectDescription', 'COUNT(d) as warnings')
                 ->from('Application\Entity\LiteipDevice', 'd')

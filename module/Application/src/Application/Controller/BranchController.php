@@ -319,22 +319,23 @@ class BranchController extends AuthController
             $projects[$result['ProjectID']][5] = $result['alerts'];
         }
 
+        if ($this->isGranted('branch.read')) {
+            $qb = $em->createQueryBuilder();
+            $qb->select('p.ProjectID, p.ProjectDescription', 'COUNT(d) as warnings')
+                ->from('Application\Entity\LiteipDevice', 'd')
+                ->innerJoin('d.drawing', 'dr')
+                ->innerJoin('dr.project', 'p')
+                ->groupBy('p.ProjectID')
+                ->andWhere('d.IsE3=true')
+                ->andWhere('DATE_DIFF(CURRENT_DATE(), d.LastE3StatusDate) >= ' . $warningDays);
 
-        $qb = $em->createQueryBuilder();
-        $qb->select('p.ProjectID, p.ProjectDescription', 'COUNT(d) as warnings')
-            ->from('Application\Entity\LiteipDevice', 'd')
-            ->innerJoin('d.drawing', 'dr')
-            ->innerJoin('dr.project', 'p')
-            ->groupBy('p.ProjectID')
-            ->andWhere('d.IsE3=true')
-            ->andWhere('DATE_DIFF(CURRENT_DATE(), d.LastE3StatusDate) >= ' . $warningDays);
+            foreach ($qb->getQuery()->getResult() as $result) {
+                if (empty($projects[$result['ProjectID']])) {
+                    continue;
+                }
 
-        foreach ($qb->getQuery()->getResult() as $result) {
-            if (empty($projects[$result['ProjectID']])) {
-                continue;
+                $projects[$result['ProjectID']][6] = $result['warnings'];
             }
-
-            $projects[$result['ProjectID']][6] = $result['warnings'];
         }
 
         $locations = array();

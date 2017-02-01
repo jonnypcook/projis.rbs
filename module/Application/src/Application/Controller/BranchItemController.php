@@ -387,10 +387,13 @@ class BranchItemController extends AuthController
             ->innerJoin('d.drawing', 'dr')
             ->innerJoin('d.status', 's')
             ->andWhere('dr.project = ' . $this->getProject()->getLipProject()->getProjectID())
+            ->andWhere('d.IsE3=true')
             ->andWhere('s.fault = true');
         $errors = $qb->getQuery()->getSingleScalarResult();
 
         if ($this->isGranted('branch.warnings.read')) {
+            $config = $this->getServiceLocator()->get('Config');
+            $warningDays = (empty($config) || !is_array($config['liteip']) || empty($config['liteip']['warnings']) || empty($config['liteip']['warnings']['portal'])) ? 5 : $config['liteip']['warnings']['portal'];
 
             $qb = $em->createQueryBuilder();
             $qb->select('COUNT(DISTINCT d)')
@@ -398,8 +401,8 @@ class BranchItemController extends AuthController
                 ->innerJoin('d.drawing', 'dr')
                 ->innerJoin('d.status', 's')
                 ->andWhere('dr.project = ' . $this->getProject()->getLipProject()->getProjectID())
-                //->andWhere('d.IsE3 = true')
-                ->andWhere('DATE_DIFF(CURRENT_TIMESTAMP(), d.LastE3StatusDate) >= 1');
+                ->andWhere('d.IsE3 = true')
+                ->andWhere('DATE_DIFF(CURRENT_TIMESTAMP(), d.LastE3StatusDate) >= ' . $warningDays);
             $warnings = $qb->getQuery()->getSingleScalarResult();
             $this->getView()->setVariable('warnings', $warnings);
         }
@@ -452,6 +455,8 @@ class BranchItemController extends AuthController
             $errorCount = 0;
             $noFaultCount = 0;
             $synchronize = $this->params()->fromQuery('synchronize', false);
+            $config = $this->getServiceLocator()->get('Config');
+            $warningDays = (empty($config) || !is_array($config['liteip']) || empty($config['liteip']['warnings']) || empty($config['liteip']['warnings']['portal'])) ? 5 : $config['liteip']['warnings']['portal'];
 
 
 
@@ -485,9 +490,10 @@ class BranchItemController extends AuthController
                     $noFaultCount ++;
                 }
 
+
                 $timestamp = empty($device->getLastE3StatusDate()) ? 0 : $device->getLastE3StatusDate()->getTimestamp();
                 $diff = $now->getTimestamp() - $timestamp;
-                if($device->isIsE3() && (floor($diff / (60 * 60 * 24)) > 0)) { // if not tested for 24 hours
+                if($device->isIsE3() && (floor($diff / (60 * 60 * 24)) >= $warningDays)) { // if not tested for 24 hours
                     $warningCount++;
                     $warnings[$device->getDrawing()->getDrawing(true)][] = array(
                         $device->getDeviceID(),

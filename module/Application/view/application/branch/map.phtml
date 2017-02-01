@@ -37,6 +37,15 @@ function initMap() {
     var map;
     var infowindow = new google.maps.InfoWindow();
 
+    var pinImageSuccess = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|009900",
+        new google.maps.Size(21, 34), new google.maps.Point(0,0), new google.maps.Point(10, 34));
+    var pinImageError = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|FF0000",
+        new google.maps.Size(21, 34), new google.maps.Point(0,0), new google.maps.Point(10, 34));
+    var pinImageWarning = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|FFA500",
+        new google.maps.Size(21, 34), new google.maps.Point(0,0), new google.maps.Point(10, 34));
+    var pinShadow = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_pin_shadow",
+        new google.maps.Size(40, 37), new google.maps.Point(0, 0), new google.maps.Point(12, 35));
+
     map = new google.maps.Map(document.getElementById('map'), mapOptions);
 
     var marker, i;
@@ -44,13 +53,17 @@ function initMap() {
     for (i = 0; i < locations.length; i++) {
         marker = new google.maps.Marker({
             position: new google.maps.LatLng(locations[i][0], locations[i][1]),
-            map: map
+            map: map,
+            icon: (locations[i][5] > 0) ? pinImageError : ((locations[i][6] > 0) ? pinImageWarning : pinImageSuccess),
+            shadow: pinShadow
         });
 
         google.maps.event.addListener(marker, 'click', (function(marker, i) {
             return function() {
                 infowindow.setContent('<p><strong>' + locations[i][2] + '</strong></p>' +
                 '<p>' + locations[i][3] + '</p>' +
+                ((locations[i][5] > 0) ? '<p style="color: #FF0000">Site has ' + locations[i][5] + ' error' + (locations[i][5] > 1 ? 's' : '') + '</p>' : '') +
+                ((locations[i][6] > 0) ? '<p style="color: #FFA500">Site has ' + locations[i][6] + ' warning' + (locations[i][6] > 1 ? 's' : '') + '</p>' : '') +
                 '<p><a href="/branch-' + locations[i][4] + '">Click to visit</a></p>');
                 infowindow.open(map, marker);
             }

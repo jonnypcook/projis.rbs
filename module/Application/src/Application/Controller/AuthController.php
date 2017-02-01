@@ -74,6 +74,7 @@ abstract class AuthController extends AbstractActionController
                     ->innerJoin('dr.project', 'p')
                     ->innerJoin('d.status', 's')
                     ->andWhere($qb->expr()->in('p.ProjectID', $qb2->getDQL()))
+                    ->andWhere('d.IsE3=true')
                     ->andWhere('s.fault = true');
                 $alerts = $qb->getQuery()->getSingleScalarResult();
 

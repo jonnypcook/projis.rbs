@@ -74,6 +74,9 @@ class ReportController extends AuthController
                     return $data;
                 }
 
+                $warningDays = (empty($config) || !is_array($config['liteip']) || empty($config['liteip']['warnings']) || empty($config['liteip']['warnings']['portal'])) ?
+                    5 : $config['liteip']['warnings']['portal'];
+
                 $clientGroup = $config['liteip']['client'];
                 $qb2  = $this->getEntityManager()->createQueryBuilder();
                 $qb2->select('lip.ProjectID')
@@ -88,7 +91,7 @@ class ReportController extends AuthController
                 $qb->select('d')
                     ->from('Application\Entity\LiteipDevice', 'd')
                     ->innerJoin('d.drawing', 'dr')
-                    ->where('d.IsE3=true')
+                    ->andWhere('d.IsE3=true')
                     ->andWhere($qb->expr()->in('dr.project', $qb2->getDQL()))
                     ->addOrderBy('dr.project', 'ASC')
                     ->addOrderBy('dr.DrawingID', 'ASC');
@@ -147,7 +150,8 @@ class ReportController extends AuthController
                         $data['projects'][$projectName]['count']['passed']++;
                     }
 
-                    if($device->isIsE3() && (floor($diff / (60 * 60 * 24)) > 0)) { // if not tested for 24 hours
+
+                    if($device->isIsE3() && (floor($diff / (60 * 60 * 24)) >= $warningDays)) { // if not tested for 24 hours
                         $data['count']['warning']++;
                         $data['projects'][$projectName]['count']['warning']++;
 

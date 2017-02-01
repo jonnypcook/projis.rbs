@@ -89,6 +89,7 @@ class BranchController extends AuthController
                 ->innerJoin('dr.project', 'p')
                 ->innerJoin('d.status', 's')
                 ->groupBy('p.ProjectID')
+                ->andWhere('d.IsE3=true')
                 ->andWhere('s.fault = true');
 
             $branches = array();
@@ -264,27 +265,83 @@ class BranchController extends AuthController
     public function mapAction() {
         $this->setCaption('Map');
 
-        $em = $this->getEntityManager();
-        $queryBuilder = $em->createQueryBuilder();
+        $config = $this->getServiceLocator()->get('Config');
 
-        $queryBuilder
+
+        $warningDays = (empty($config) || !is_array($config['liteip']) || empty($config['liteip']['warnings']) || empty($config['liteip']['warnings']['portal'])) ?
+            5 : $config['liteip']['warnings']['portal'];
+
+        $this->setClients($config['liteip']['client']);
+
+        $em = $this->getEntityManager();
+
+        $qb = $em->createQueryBuilder();
+        $qb
             ->select('p')
             ->from('Project\Entity\Project', 'p')
-            ->innerJoin('p.lipProject', 'lip')
             ->innerJoin('p.address', 'a')
-            ->where($queryBuilder->expr()->in('p.client', ':cid'))
+            ->innerJoin('p.lipProject', 'lip')
+            ->where($qb->expr()->in('p.client', ':cid'))
             ->andWhere('p.test != true')
             ->andWhere('p.cancelled != true')
             ->andWhere('a.lat IS NOT NULL')
             ->andWhere('a.lng IS NOT NULL')
             ->setParameter('cid', $this->getClients());
+        $projects = array();
+        foreach ($qb->getQuery()->getResult() as $branch) {
+            $projects[$branch->getLipProject()->getProjectID()] = array(
+                $branch->getAddress()->getLat(),
+                $branch->getAddress()->getLng(),
+                '"' . $branch->getName() . '"',
+                '"' . $branch->getAddress()->assemble() . '"',
+                $branch->getProjectId(),
+                0,
+                0
+            );
+        }
 
-        $branches = $queryBuilder->getQuery()->getResult();
+        $qb = $em->createQueryBuilder();
+        $qb->select('p.ProjectID, p.ProjectDescription', 'COUNT(d) as alerts')
+            ->from('Application\Entity\LiteipDevice', 'd')
+            ->innerJoin('d.drawing', 'dr')
+            ->innerJoin('dr.project', 'p')
+            ->innerJoin('d.status', 's')
+            ->groupBy('p.ProjectID')
+            ->andWhere('d.IsE3=true')
+            ->andWhere('s.fault = true');
+
+
+        foreach ($qb->getQuery()->getResult() as $result) {
+            if (empty($projects[$result['ProjectID']])) {
+                continue;
+            }
+
+            $projects[$result['ProjectID']][5] = $result['alerts'];
+        }
+
+
+        $qb = $em->createQueryBuilder();
+        $qb->select('p.ProjectID, p.ProjectDescription', 'COUNT(d) as warnings')
+            ->from('Application\Entity\LiteipDevice', 'd')
+            ->innerJoin('d.drawing', 'dr')
+            ->innerJoin('dr.project', 'p')
+            ->groupBy('p.ProjectID')
+            ->andWhere('d.IsE3=true')
+            ->andWhere('DATE_DIFF(CURRENT_DATE(), d.LastE3StatusDate) >= ' . $warningDays);
+
+        foreach ($qb->getQuery()->getResult() as $result) {
+            if (empty($projects[$result['ProjectID']])) {
+                continue;
+            }
+
+            $projects[$result['ProjectID']][6] = $result['warnings'];
+        }
 
         $locations = array();
-        foreach ($branches as $branch) {
-            $locations[] = $branch->getAddress()->getLat() . ',' . $branch->getAddress()->getLng() . ', "' . $branch->getName() . '", "' . $branch->getAddress()->assemble() . '", ' . $branch->getProjectId();
+        foreach ($projects as $project) {
+            $locations[] = implode(',', $project);
         }
+
 
         return $this->getView()->setVariable('locations', $locations);
     }

@@ -104,6 +104,11 @@ class ConsoleController extends AbstractActionController
             throw new RuntimeException('You can only use this action from a console!');
         }
 
+        // get warning config
+        $config = $this->getServiceLocator()->get('Config');
+        $warningDays = (empty($config) || !is_array($config['liteip']) || empty($config['liteip']['warnings']) || empty($config['liteip']['warnings']['portal'])) ? 5 : $config['liteip']['warnings']['emergency'];
+
+
         // Check command flags
         $mode = $request->getParam('mode', 'all'); // defaults to 'all'
         $verbose = $request->getParam('verbose') || $request->getParam('v');
@@ -191,7 +196,7 @@ class ConsoleController extends AbstractActionController
                 $data['projects'][$projectName]['count']['passed']++;
             }
 
-            if($device->isIsE3() && (floor($diff / (60 * 60 * 24)) > 4)) { // if not tested for 24 hours
+            if($device->isIsE3() && (floor($diff / (60 * 60 * 24)) >= $warningDays)) { // if not tested for $warning days
                 $data['count']['warning']++;
                 $data['projects'][$projectName]['count']['warning']++;
 

@@ -414,16 +414,18 @@ return array(
                 'label' => 'Tools',
                 'route' => 'tools',
                 'ico'=> 'icon-laptop',
-                'permissions' => array('project.read'),
                 'pages' => array(
-                    array(
-                        'label' => 'Dashboard',
-                        'route' => 'tools',
-                    ),
                     array(
                         'label' => 'Remote Phosphor',
                         'route' => 'tools',
                         'action' => 'rpcalculator',
+                        'permissions' => array('project.read'),
+                    ),
+                    array(
+                        'label' => 'IoT Tools',
+                        'route' => 'tools',
+                        'action' => 'iot',
+                        'permissions' => array('branch.write'),
                     ),
                 ),
             ),

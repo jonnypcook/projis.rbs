@@ -1,5 +1,5 @@
 <?php
-if ($this->hasRole('Customer')) {
+if ($this->hasRole('Customer') && !$this->hasRole('BDM')) {
     echo $this->partial('partial/dashboard/customer.phtml');
 } else {
     echo $this->partial('partial/dashboard/vendor.phtml');

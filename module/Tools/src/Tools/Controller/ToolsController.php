@@ -29,6 +29,56 @@ class ToolsController extends AuthController
         return $this->getView();
     }
 
+    /**
+     * get LiteIp Service
+     * @return \Application\Service\LiteIpService
+     */
+    public function getLiteIpService() {
+        return $this->getServiceLocator()->get('LiteIpService');
+    }
+
+    public function iotAction() {
+        $this->setCaption('IoT Tools');
+    }
+
+    public function iotSynchronizeAction() {
+        try {
+
+            if (!($this->getRequest()->isXmlHttpRequest())) {
+                throw new \Exception('illegal request');
+            }
+
+            $customerGroup = 19;
+
+            // Check command flags
+            $liteIPService = $this->getLiteIpService();
+
+            $liteIPService->synchronizeProjectsData(true, $customerGroup);
+            $liteIPService->synchronizeDrawingsData(false, $customerGroup);
+
+            $em = $this->getEntityManager();
+
+            // get projects data for grouping
+            $qb = $em->createQueryBuilder();
+            $qb->select('p')
+                ->from('Application\Entity\LiteipProject', 'p')
+                ->where('p.CustomerGroup=?1')
+                ->andWhere('p.TestSite=false')
+                ->setParameter(1, $customerGroup);
+            $projects = $qb->getQuery()->getResult();
+
+            foreach ($projects as $project) {
+                $liteIPService->synchronizeDevicesData(false, $project->getProjectID());
+            }
+
+            $data = array('err'=>false);
+        } catch (\Exception $ex) {
+            $data = array('err'=>true, 'info'=>array('ex'=>$ex->getMessage()));
+        }
+
+        return new JsonModel(empty($data)?array('err'=>true):$data);
+    }
+
     public function rpQuickCalculateAction() {
         try {
             

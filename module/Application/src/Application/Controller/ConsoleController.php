@@ -191,7 +191,7 @@ class ConsoleController extends AbstractActionController
                 $data['projects'][$projectName]['count']['passed']++;
             }
 
-            if($device->isIsE3() && (floor($diff / (60 * 60 * 24)) > 0)) { // if not tested for 24 hours
+            if($device->isIsE3() && (floor($diff / (60 * 60 * 24)) > 4)) { // if not tested for 24 hours
                 $data['count']['warning']++;
                 $data['projects'][$projectName]['count']['warning']++;
 

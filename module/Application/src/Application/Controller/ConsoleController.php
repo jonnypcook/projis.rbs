@@ -138,7 +138,7 @@ class ConsoleController extends AbstractActionController
             ->andWhere('p.CustomerGroup= :cGroup')
             ->andWhere('p.TestSite=false')
             ->setParameter('cGroup', $customerGroup)
-            //->andWhere('d.IsE3=true')
+            ->andWhere('d.IsE3=true')
             ->addOrderBy('dr.project', 'ASC')
             ->addOrderBy('dr.DrawingID', 'ASC');
 

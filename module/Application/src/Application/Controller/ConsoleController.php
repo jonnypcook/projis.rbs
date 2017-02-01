@@ -96,8 +96,6 @@ class ConsoleController extends AbstractActionController
     {
         date_default_timezone_set('Europe/London');
         $em = $this->getEntityManager();
-        $liteIPService = $this->getLiteIpService();
-
         $request = $this->getRequest();
 
         // Make sure that we are running in a console and the user has not tricked our
@@ -105,8 +103,6 @@ class ConsoleController extends AbstractActionController
         if (!$request instanceof ConsoleRequest) {
             throw new RuntimeException('You can only use this action from a console!');
         }
-
-        $alerts = array();
 
         // Check command flags
         $mode = $request->getParam('mode', 'all'); // defaults to 'all'
@@ -218,7 +214,7 @@ class ConsoleController extends AbstractActionController
 
             $tblErrors = '';
             $tblWarnings = '';
-            $tblSummary = '';
+            $tblSummary = array('success' => '', 'warning' => '', 'error' => '');
             foreach ($data['projects'] as $projectName => $projectData) {
 
                 if ($projectData['count']['error'] > 0) {
@@ -228,7 +224,7 @@ class ConsoleController extends AbstractActionController
                 } else {
                     $class = 'success';
                 }
-                $tblSummary .=  '<tr><td class="' . $class . '">' . $projectName . '</td>' .
+                $tblSummary[$class] .=  '<tr><td class="' . $class . '">' . $projectName . '</td>' .
                     '<td>' . $projectData['postcode'] . '</td>' .
                     '<td class="right">' . $projectData['count']['device'] . '</td>' .
                     '<td class="right">' . $projectData['count']['passed'] . '</td>' .
@@ -259,7 +255,8 @@ class ConsoleController extends AbstractActionController
 
             $tblErrors = '<h3>Error Report</h3><table><thead><tr><th>Site</th><th>Postcode</th><th>Drawing</th><th>Device SN</th><th>Status</th><th>Last Tested</th></tr></thead><tbody>' . $tblErrors . '</tbody></table>';
             $tblWarnings = '<h3>Warnings Report</h3><table><thead><tr><th>Site</th><th>Postcode</th><th>Drawing</th><th>Device SN</th><th>Status</th><th>Last Tested</th></tr></thead><tbody>' . $tblWarnings . '</tbody></table>';
-            $tblSummary = '<h3>Site Summary</h3><table><thead><tr><th>Site</th><th>Postcode</th><th>Devices</th><th>Passed</th><th>Errors</th><th>Warnings</th></tr></thead><tbody>' . $tblSummary . '</tbody>' .
+            $tblSummary = '<h3>Site Summary</h3><table><thead><tr><th>Site</th><th>Postcode</th><th>Devices</th><th>Passed</th><th>Errors</th><th>Warnings</th></tr></thead><tbody>' .
+                implode('', $tblSummary) . '</tbody>' .
                 '<tfoot><td>TOTAL</td><td></td><td class="right">' . $data['count']['device'] . '</td><td class="right">' . $data['count']['passed'] . '</td><td class="right">' . $data['count']['error'] . '</td><td class="right">' . $data['count']['warning'] . '</td></tfoot></table>';
 
             // send email
@@ -271,67 +268,6 @@ class ConsoleController extends AbstractActionController
         $this->addOutputMessage($data['count']['warning'] . ' warnings found');
 
         return;
-    }
-
-    /**
-     * @param array $alerts
-     * @param $device
-     * @param $drawing
-     * @param $project
-     */
-    function addError (array &$alerts, $device, $drawing, $project) {
-        $this->prepareAlert($alerts, $drawing, $project);
-        $alerts[$project->getProjectID()]['drawings'][$drawing->getDrawingID()]['errors'][] = array(
-            $device->getDeviceID(),
-            $device->getDeviceSN(),
-            $device->getStatus()->getDescription(),
-            empty($device->getLastE3StatusDate()) ? '' : $device->getLastE3StatusDate()->format('d/m/Y H:i:s'),
-            '(' . $device->getPosTop() . ',' . $device->getPosLeft()  . ')'
-        );
-    }
-
-    /**
-     * @param array $alerts
-     * @param $type
-     * @param $device
-     * @param $drawing
-     * @param $project
-     */
-    function addWarning (array &$alerts, $type, $device, $drawing, $project) {
-        $this->prepareAlert($alerts, $drawing, $project);
-        $alerts[$project->getProjectID()]['drawings'][$drawing->getDrawingID()]['warnings'][] = array(
-            $device->getDeviceID(),
-            $device->getDeviceSN(),
-            $type,
-            empty($device->getLastE3StatusDate()) ? '' : $device->getLastE3StatusDate()->format('d/m/Y H:i:s'),
-            '(' . $device->getPosTop() . ',' . $device->getPosLeft()  . ')'
-        );
-    }
-
-    /**
-     * @param array $alerts
-     * @param $drawing
-     * @param $project
-     */
-    function prepareAlert (array &$alerts, $drawing, $project) {
-        if (empty($alerts[$project->getProjectID()])) {
-            $alerts[$project->getProjectID()] = array(
-                'project' => $project,
-                'drawings' => array(
-                    $drawing->getDrawingID() => array(
-                        'drawing' => $drawing,
-                        'errors' => array(),
-                        'warnings' => array()
-                    )
-                )
-            );
-        } elseif (empty($alerts[$project->getProjectID()]['drawings'][$drawing->getDrawingID()])) {
-            $alerts[$project->getProjectID()]['drawings'][$drawing->getDrawingID()] = array(
-                'drawing' => $drawing,
-                'errors' => array(),
-                'warnings' => array()
-            );
-        }
     }
 
 

@@ -85,8 +85,36 @@ $this->inlineScript()
             </a>
         </div>
     </div>
-    <?php if ($this->isGranted('project.surveyor')) { ?>
+    <?php
+    if ($this->isGranted('branch.read') || $this->isGranted('project.surveyor')) { ?>
         <div class="metro-nav">
+        <?php
+        if ($this->isGranted('branch.read')) {
+            ?>
+            <div class="metro-nav-block nav-block-grey double">
+                <a data-original-title="" href="/branch/map/">
+                    <i class="icon-globe"></i>
+                    <div class="info">Branches</div>
+                    <div class="status">Map View</div>
+                </a>
+            </div>
+            <div class="metro-nav-block nav-block-green">
+                <a data-original-title="" href="/branch/commissioned">
+                    <i class="icon-check"></i>
+                    <div class="status">Commissioned Branches</div>
+                </a>
+            </div>
+            <div class="metro-nav-block nav-block-yellow">
+                <a data-original-title="" href="/branch/pending">
+                    <i class="icon-calendar"></i>
+                    <div class="status">Pending Branches</div>
+                </a>
+            </div>
+            <?php
+
+        }
+
+        if ($this->isGranted('project.surveyor')) { ?>
             <div class="metro-nav-block nav-block-blue ">
                 <a data-original-title="" href="/project/survey">
                     <i class="icon-list-alt"></i>
@@ -94,8 +122,14 @@ $this->inlineScript()
                     <div class="status"></div>
                 </a>
             </div>
+            <?php
+        }
+
+        ?>
         </div>
-    <?php } ?>
+<?php
+    }
+    ?>
     <div class="space10"></div>
     <!--END METRO STATES-->
 </div>
@@ -174,4 +208,41 @@ $this->inlineScript()
         <!-- END CHAT PORTLET-->
     </div>
 </div>
+<?php
+    if ($this->isGranted('branch.read')) {
+        $this->inlineScript()->appendFile('/js/forms/dashboard/customer.js');
+?>
+        <div class="row-fluid">
+            <div class="span12">
+                <!-- BEGIN PROGRESS PORTLET-->
+                <div class="widget blue">
+                    <div class="widget-title">
+                        <h4><i class="icon-tasks"></i> Branches</h4>
+                <span class="tools">
+                    <a href="javascript:;" class="icon-chevron-down"></a>
+                    <a href="javascript:;" class="icon-remove"></a>
+                </span>
+                    </div>
+                    <div class="widget-body">
+                        <table class="table table-bordered table-advance table-responsive" id="branches_tbl">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Address</th>
+                                <th style="width: 140px">Postcode</th>
+                                <th>Status</th>
+                            </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <?php echo $this->partial('partial/dashboard/status-key.phtml'); ?>
+                    </div>
+                </div>
+                <!-- END PROGRESS PORTLET-->
+            </div>
+        </div>
+<?php
+    }
+?>
+
 <?php echo $this->partial('partial/contact/dialog.phtml'); ?>

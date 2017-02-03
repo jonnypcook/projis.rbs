@@ -31,7 +31,7 @@ $this->inlineScript()
                                         <a data-toggle="dropdown" class="dropdown-toggle" role="button" id="drop2" href="#">Downloads <b class="caret"></b></a>
                                         <ul aria-labelledby="drop2" role="menu" class="dropdown-menu">
                                             <?php
-                                            if ($project->getLipProject() && $project->getInstalled() && $project->getCompleted()) {
+                                            if ($project->getLipProject() && $project->getInstalled()) {
                                             ?>
                                                 <li role="presentation"><a href="/client-<?php echo $project->getClient()->getClientId(); ?>/project-<?php echo $project->getProjectId(); ?>/document/commissioningcertificate/" tabindex="-1" role="menuitem" target="_tab">Commissioning Certificate (View)</a></li>
                                                 <li role="presentation"><a href="/client-<?php echo $project->getClient()->getClientId(); ?>/project-<?php echo $project->getProjectId(); ?>/document/commissioningcertificate/?download=true" tabindex="-1" role="menuitem">Commissioning Certificate (Download)</a></li>

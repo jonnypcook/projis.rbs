@@ -1664,6 +1664,10 @@ class ProjectitemdocumentController extends ProjectSpecificController
     }
 
 
+    /**
+     * commissioning report
+     * @return PdfModel
+     */
     public function commissioningCertificateAction() {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -1688,7 +1692,9 @@ class ProjectitemdocumentController extends ProjectSpecificController
         $pdf = new PdfModel();
         $pdf->setOption('paperSize', 'pdf');
         $pdf->setOption('paperOrientation', 'landscape');
-//        $pdf->setOption('filename', $filename . '.pdf');
+        if ($this->params()->fromQuery('download', false) !== false) {
+            $pdf->setOption('filename', $filename . '.pdf');
+        }
 
 
         $pdf->setVariables($pdfVars);

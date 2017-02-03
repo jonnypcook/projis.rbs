@@ -33,7 +33,7 @@ $this->inlineScript()
                                             <?php
                                             if ($project->getLipProject() && $project->getInstalled() && $project->getCompleted()) {
                                             ?>
-                                            <li role="presentation"><a href="/client-<?php echo $project->getClient()->getClientId(); ?>/project-<?php echo $project->getProjectId(); ?>/document/commissioningcertificate/" tabindex="-1" role="menuitem">Commissioning Certificate</a></li>
+                                            <li role="presentation"><a href="/client-<?php echo $project->getClient()->getClientId(); ?>/project-<?php echo $project->getProjectId(); ?>/document/commissioningcertificate/" tabindex="-1" role="menuitem" target="_tab">Commissioning Certificate</a></li>
                                             <?php
                                             } else {
                                             ?>

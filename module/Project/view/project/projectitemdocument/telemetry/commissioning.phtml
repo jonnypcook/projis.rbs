@@ -28,6 +28,11 @@ echo $this->partial('partial/project/docs/footers/8p3logo.phtml');
         font-size: 9pt;
     }
 
+    .nbStar {
+        position: absolute;
+        right: 10px;
+    }
+
     table  {
         border-collapse: collapse;
     }
@@ -40,6 +45,7 @@ echo $this->partial('partial/project/docs/footers/8p3logo.phtml');
         border: 1px #ccc solid;
         padding: 2px;
         margin: 0;
+        position: relative;
     }
 
     table .center {
@@ -65,12 +71,12 @@ echo '<img id="letterhead_logo" src="'. $resourcesUri .'img/lumitel/lumitel-lite
     <tr>
         <th style="width: 80px">Floor ID</th>
         <th>Floor Name</th>
-        <th style="width: 80px">Fixture Serial</th>
-        <th style="width: 80px">Test Type C,M,A *</th>
+        <th style="width: 80px">Fixture<br>Serial</th>
+        <th style="width: 80px">Test Type C,M,A<span class="nbStar">*</span></th>
         <th style="width: 90px">Installed</th>
         <th style="width: 90px">Tested</th>
         <th style="width: 80px">Passed</th>
-        <th style="width: 80px">Failed</th>
+        <th style="width: 80px">Failure<br>Code<span class="nbStar">**</span></th>
     </tr>
     </thead>
     <tbody>
@@ -93,27 +99,41 @@ echo '<img id="letterhead_logo" src="'. $resourcesUri .'img/lumitel/lumitel-lite
         <td class="center">C</td>
         <td class="center">' . $installed . '</td>
         <td class="center">' . $commissioned . '</td>
-        <td class="center">' . ($failed ? '' : 'Y') . '</td>
-        <td class="center">' . ($failed ? 'Y' : '') . '</td>
+        <td class="center">' . ($failed ? 'N' : 'Y') . '</td>
+        <td class="center">' . ($failed ? $device->getStatus()->getDeviceStatusId() : '') . '</td>
     </tr>';
     }
     ?>
     </tbody>
     <tfoot>
     <tr>
-        <th>Total</th>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <th><?php echo $totalPassed; ?></th>
-        <th><?php echo $totalFailed; ?></th>
+        <th colspan="8" class="left">&nbsp;</th>
+    </tr>
+    <tr>
+        <th colspan="7" class="left">&nbsp;Total Devices</th>
+        <th><?php echo ($totalPassed + $totalFailed); ?></th>
+    </tr>
+    <tr>
+        <th colspan="7" class="left">&nbsp;Total Devices Passed</th>
+        <th><?php echo ($totalPassed); ?></th>
+    </tr>
+    <tr>
+        <th colspan="7" class="left">&nbsp;Total Devices Failed</th>
+        <th><?php echo ( $totalFailed); ?></th>
     </tr>
     </tfoot>
 </table>
 <div id="nb">
-    * Test type codes: C = commission, M = monthly, A = Annual
+    * Test type codes: C = commission, M = monthly, A = Annual <br>
+    ** Failure Codes: <?php
+    if ($faultCodes) {
+        $codes = array();
+        foreach ($faultCodes as $faultCode) {
+            $codes[] = $faultCode->getDeviceStatusId() . ' = ' . $faultCode->getDescription();
+        }
+        echo implode(', ', $codes);
+    }
+?>
 </div>
 
 </body>

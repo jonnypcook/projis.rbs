@@ -1679,11 +1679,14 @@ class ProjectitemdocumentController extends ProjectSpecificController
             ->setParameter(1, $this->getProject()->getLipProject()->getProjectID());
         $devices = $qb->getQuery()->getResult();
 
+        $faultCodes = $em->getRepository('Application\Entity\LiteipDeviceStatus')->findByFault(true);
+
         $filename = 'Commissioning Certificate - ' . preg_replace('/[^a-z0-9-_ ]+/i', '', $this->getProject()->getName()) . ' ' . date('dmyHis');
         $pdfVars = array(
             'resourcesUri' => getcwd().DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR,
             'project' => $this->getProject(),
             'devices' => $devices,
+            'faultCodes' => $faultCodes,
             'footer' => array (
                 'pages'=>true
             ),

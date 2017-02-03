@@ -29,8 +29,8 @@ echo $this->partial('partial/project/docs/footers/8p3logo.phtml');
     }
 
     .nbStar {
-        position: absolute;
-        right: 10px;
+        padding-left: 4px;
+        font-size: 8pt;
     }
 
     table  {
@@ -124,12 +124,12 @@ echo '<img id="letterhead_logo" src="'. $resourcesUri .'img/lumitel/lumitel-lite
     </tfoot>
 </table>
 <div id="nb">
-    * Test type codes: C = commission, M = monthly, A = Annual <br>
+    * Test Type Codes: C=Commission, M=Monthly, A=Annual <br>
     ** Failure Codes: <?php
     if ($faultCodes) {
         $codes = array();
         foreach ($faultCodes as $faultCode) {
-            $codes[] = $faultCode->getDeviceStatusId() . ' = ' . $faultCode->getDescription();
+            $codes[] = $faultCode->getDeviceStatusId() . '=' . $faultCode->getDescription();
         }
         echo implode(', ', $codes);
     }

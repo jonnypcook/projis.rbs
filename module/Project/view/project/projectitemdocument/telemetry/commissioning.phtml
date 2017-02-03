@@ -1,3 +1,20 @@
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <title>RBS - Commissioning Sheet</title>
+
+    <?php
+    echo $this->partial('partial/project/docs/css.phtml');
+    ?>
+
+</head>
+<body>
+<?php
+if (!empty($footer['pages'])) {
+    echo $this->partial('partial/project/docs/pages.phtml');
+}
+
+?>
 <style>
     #letterhead_logo {
         width: 240px;
@@ -21,7 +38,7 @@
 
     td, th {
         border: 1px #ccc solid;
-        padding: 4px;
+        padding: 2px;
         margin: 0;
     }
 
@@ -43,31 +60,31 @@ echo '<img id="letterhead_logo" src="'. $resourcesUri .'img/logo-8p3-1.png" />';
 <h1>Emergency Lighting Commissioning Certificate</h1>
 <h3><?php echo $project->getName(); ?></h3>
 <p>Address: <?php echo $project->getAddress()->assemble(); ?></p>
-<table id="reportTable" width="100%">
+    <table id="reportTable" width="100%">
     <thead>
     <tr>
         <th style="width: 80px">Floor ID</th>
         <th>Floor Name</th>
         <th style="width: 80px">Serial</th>
         <th style="width: 80px">Test Type C,M,A</th>
-        <th style="width: 120px">Installed</th>
-        <th style="width: 120px">Tested</th>
+        <th style="width: 90px">Installed</th>
+        <th style="width: 90px">Tested</th>
         <th style="width: 80px">Passed</th>
         <th style="width: 80px">Failed</th>
     </tr>
     </thead>
     <tbody>
-<?php
-$totalPassed = 0;
-$totalFailed = 0;
-foreach($devices as $device) {
-    $failed = $device->getStatus() && $device->getStatus()->isFault();
-    if ($failed) {
-        $totalFailed ++;
-    } else {
-        $totalPassed ++;
-    }
-    echo '<tr>
+    <?php
+    $totalPassed = 0;
+    $totalFailed = 0;
+    foreach($devices as $device) {
+        $failed = $device->getStatus() && $device->getStatus()->isFault();
+        if ($failed) {
+            $totalFailed ++;
+        } else {
+            $totalPassed ++;
+        }
+        echo '<tr>
         <td class="center">' . $device->getDrawing()->getDrawingID() . '</td>
         <td class="center">' . $device->getDrawing()->getDrawing(true) . '</td>
         <td class="center">' . $device->getDeviceSN() . '</td>
@@ -77,8 +94,8 @@ foreach($devices as $device) {
         <td class="center">' . ($failed ? '' : 'Y') . '</td>
         <td class="center">' . ($failed ? 'Y' : '') . '</td>
     </tr>';
-}
-?>
+    }
+    ?>
     </tbody>
     <tfoot>
     <tr>
@@ -93,3 +110,7 @@ foreach($devices as $device) {
     </tr>
     </tfoot>
 </table>
+
+
+</body>
+</html>

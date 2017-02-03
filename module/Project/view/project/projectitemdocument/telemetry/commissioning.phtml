@@ -10,10 +10,10 @@
 </head>
 <body>
 <?php
-if (!empty($footer['pages'])) {
-    echo $this->partial('partial/project/docs/pages.phtml');
-}
-
+//if (!empty($footer['pages'])) {
+//    echo $this->partial('partial/project/docs/pages.phtml');
+//}
+echo $this->partial('partial/project/docs/footers/8p3logo.phtml');
 ?>
 <style>
     #letterhead_logo {
@@ -23,17 +23,17 @@ if (!empty($footer['pages'])) {
         top: 0;
     }
 
-    #letterhead_originator {
-        position: absolute;
-        right: 0;
-        top: 0;
+    #nb {
+        margin-top: 10px;
         font-size: 9pt;
-        line-height: 10pt;
-        text-align: right;
     }
 
     table  {
         border-collapse: collapse;
+    }
+
+    table thead th {
+        background-color: #f3f3f3;
     }
 
     td, th {
@@ -55,7 +55,7 @@ if (!empty($footer['pages'])) {
     }
 </style>
 <?php
-echo '<img id="letterhead_logo" src="'. $resourcesUri .'img/logo-8p3-1.png" />';
+echo '<img id="letterhead_logo" src="'. $resourcesUri .'img/lumitel/lumitel-lite-lowres.png" />';
 ?>
 <h1>Emergency Lighting Commissioning Certificate</h1>
 <h3><?php echo $project->getName(); ?></h3>
@@ -65,8 +65,8 @@ echo '<img id="letterhead_logo" src="'. $resourcesUri .'img/logo-8p3-1.png" />';
     <tr>
         <th style="width: 80px">Floor ID</th>
         <th>Floor Name</th>
-        <th style="width: 80px">Serial</th>
-        <th style="width: 80px">Test Type C,M,A</th>
+        <th style="width: 80px">Fixture Serial</th>
+        <th style="width: 80px">Test Type C,M,A *</th>
         <th style="width: 90px">Installed</th>
         <th style="width: 90px">Tested</th>
         <th style="width: 80px">Passed</th>
@@ -112,7 +112,9 @@ echo '<img id="letterhead_logo" src="'. $resourcesUri .'img/logo-8p3-1.png" />';
     </tr>
     </tfoot>
 </table>
-
+<div id="nb">
+    * Test type codes: C = commission, M = monthly, A = Annual
+</div>
 
 </body>
 </html>

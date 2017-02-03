@@ -1,0 +1,38 @@
+<style>
+    #footer {
+        position: fixed;
+    }
+
+    #footer  {
+        bottom: 25px;
+        text-align: center;
+        width: 100%;
+    }
+
+    #footer .page {
+        font-size: 9px;
+    }
+
+    #footer img {
+        height: 40px;
+        position: absolute;
+        left: 0px;
+        top: 20px;
+    }
+
+    #footer .page:after {
+        font-size: 11px;
+        content: "- Page " counter(page) " -";
+    }
+
+</style>
+<!-- Important: if you don't want a page number on the first page then you must include partial file after first page html <!-- -->
+<div id="footer">
+    <p class="page">
+        <?php
+//        echo '<img src="'. $resourcesUri .'img/logo-8p3-1.png" />';
+        ?>
+        8point Ltd. Registered in England&Wales, Company Number 02754379
+        Registered Office Address, Trinity House, 3 Bullace Lane, Dartford, Kent. DA1 1BB
+        <br /></p>
+</div>

@@ -242,8 +242,14 @@ class BranchController extends AuthController
             }
             $statusHtml = '<span style="position: absolute; padding-top:12px">'. $weighting .'%</span><div class="progress progress-'.$statusCls.'"><div style="width: '. $weighting .'%;" class="bar"></div></div>';
 
+            if ($this->isGranted('project.read')) {
+                $desc = $page->getName() . '<span class="pull-right"><a href="/branch-' . $page->getProjectId() . '/">Branch</a> | <a href="/client-' . $page->getClient()->getClientId() . '/project-' . $page->getProjectId() . '/">Project</a></span>';
+            } else {
+                $desc = '<a href="/branch-' . $page->getProjectId() . '/">' . $page->getName() . '</a>';
+            }
+
             $data['aaData'][] = array (
-                '<a href="/branch-' . $page->getProjectId() . '/">' . $page->getName() . '</a>',
+                $desc,
                 empty($page->getAddress()) ? '-' : $page->getAddress()->assemble(', ', array('postcode')),
                 empty($page->getAddress()) ? '-' : $page->getAddress()->getPostcode(),
                 $statusHtml

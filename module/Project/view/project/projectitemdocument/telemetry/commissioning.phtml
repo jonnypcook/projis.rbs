@@ -77,6 +77,8 @@ echo '<img id="letterhead_logo" src="'. $resourcesUri .'img/logo-8p3-1.png" />';
     <?php
     $totalPassed = 0;
     $totalFailed = 0;
+    $installed = $project->getInstalled()->format('d/m/Y');
+    $commissioned = $project->getInstalled()->modify('+2 day')->format('d/m/Y');
     foreach($devices as $device) {
         $failed = $device->getStatus() && $device->getStatus()->isFault();
         if ($failed) {
@@ -89,8 +91,8 @@ echo '<img id="letterhead_logo" src="'. $resourcesUri .'img/logo-8p3-1.png" />';
         <td class="center">' . $device->getDrawing()->getDrawing(true) . '</td>
         <td class="center">' . $device->getDeviceSN() . '</td>
         <td class="center">C</td>
-        <td class="center">' . $project->getInstalled()->format('d/m/Y') . '</td>
-        <td class="center">' . $project->getInstalled()->modify('+2 day')->format('d/m/Y') . '</td>
+        <td class="center">' . $installed . '</td>
+        <td class="center">' . $commissioned . '</td>
         <td class="center">' . ($failed ? '' : 'Y') . '</td>
         <td class="center">' . ($failed ? 'Y' : '') . '</td>
     </tr>';

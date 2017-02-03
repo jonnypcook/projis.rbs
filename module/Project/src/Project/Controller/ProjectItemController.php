@@ -1,6 +1,7 @@
 <?php
 namespace Project\Controller;
 
+use Project\Form\CommissioningSetupForm;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 
@@ -2361,9 +2362,66 @@ class ProjectitemController extends ProjectSpecificController
             $drawings = array();
         }
 
+        $commissioningSetupForm = new CommissioningSetupForm();
+        $commissioningSetupForm
+            ->setAttribute('action', '/client-' . $this->getProject()->getClient()->getClientId() . '/project-' . $this->getProject()->getProjectId(). '/commissioningSaveSetup/')
+            ->setAttribute('class', 'form-nomargin');
+
+        // add dates to form
+        if ($this->getProject()->getInstalled()) {
+            $commissioningSetupForm->get('installed')->setValue($this->getProject()->getInstalled()->format('d/m/Y'));
+        }
+
+        if ($this->getProject()->getCompleted()) {
+            $commissioningSetupForm->get('commissioned')->setValue($this->getProject()->getCompleted()->format('d/m/Y'));
+        }
+
         return $this->getView()
+            ->setVariable('commissioningSetupForm', $commissioningSetupForm)
             ->setVariable('drawings', $drawings)
             ->setVariable('unassigned', $unassigned);
+    }
+
+
+    /**
+     * (commissioning) save project setup action
+     * @return JsonModel
+     * @throws \Exception
+     */
+    public function commissioningSaveSetupAction() {
+        try {
+            if (!$this->request->isXmlHttpRequest()) {
+                throw new \Exception('illegal request type');
+            }
+
+            $post = $this->params()->fromPost();
+            $installed = $this->params()->fromPost('installed', false);
+            $commissioned = $this->params()->fromPost('commissioned', false);
+
+            $form = new CommissioningSetupForm();
+
+            $form->setData($post);
+            if ($form->isValid()) {
+                if (!!$commissioned) {
+                    $dtCommissioned = \DateTime::createFromFormat('d/m/Y', $commissioned);
+                    $this->getProject()->setCompleted($dtCommissioned);
+                }
+
+                if (!!$installed) {
+                    $dtInstalled = \DateTime::createFromFormat('d/m/Y', $installed);
+                    $this->getProject()->setInstalled($dtInstalled);
+                }
+
+                $this->getEntityManager()->persist($this->getProject());
+                $this->getEntityManager()->flush();
+
+                return new JsonModel(array('error' => false));
+            } else {
+                return new JsonModel(array('error'=>true, 'info'=>$form->getMessages()));
+            }
+        } catch (\Exception $ex) {
+            return new JsonModel(array('error' => true, 'info' => $ex->getMessage()));
+        }
     }
 
     /**

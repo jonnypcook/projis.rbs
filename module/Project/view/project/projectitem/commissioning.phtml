@@ -1,5 +1,10 @@
 <?php
+$this->headLink()
+    ->appendStylesheet('/assets/bootstrap-datepicker/css/datepicker.css')
+;
+
 $this->inlineScript()
+    ->appendFile('/assets/bootstrap-datepicker/js/bootstrap-datepicker.js')
     ->appendFile('/js/forms/project/commissioning.js');
 
 ?>
@@ -16,6 +21,34 @@ $this->inlineScript()
                     </span>
                 </div>
                 <div class="widget-body relative">
+                    <div class="space10"></div>
+                    <div class="navbar navbar-static" id="navbar-example">
+                        <div class="navbar-inner">
+                            <div style="width: auto;" class="container">
+                                <a href="#" class="brand">Options</a>
+                                <ul role="navigation" class="nav">
+                                    <li class="dropdown">
+                                        <a data-toggle="dropdown" class="dropdown-toggle" role="button" id="drop2" href="#">Downloads <b class="caret"></b></a>
+                                        <ul aria-labelledby="drop2" role="menu" class="dropdown-menu">
+                                            <?php
+                                            if ($project->getLipProject() && $project->getInstalled() && $project->getCompleted()) {
+                                            ?>
+                                            <li role="presentation"><a href="/client-<?php echo $project->getClient()->getClientId(); ?>/project-<?php echo $project->getProjectId(); ?>/document/commissioningcertificate/" tabindex="-1" role="menuitem">Commissioning Certificate</a></li>
+                                            <?php
+                                            } else {
+                                            ?>
+                                            <li role="presentation"><a
+                                                    href="javascript:"
+                                                    tabindex="-1" role="menuitem">None Available</a></li>
+                                            <?php
+                                            }
+                                            ?>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                     <form name="frmSaveStatus" id="frmUpdateLinkedBranch" class="form-nomargin" action="/client-<?php echo $project->getClient()->getClientId(); ?>/project-<?php echo $project->getProjectId(); ?>/commissioningupdatelinkedbranch/">
                         <table class="table table-bordered table-striped" id="tbl_linked_branch">
                             <thead>
@@ -29,7 +62,7 @@ $this->inlineScript()
                             </thead>
                             <tbody>
                             <tr>
-                                <th style="width: 200px">Linked Branch</th>
+                                <th style="width: 250px">Linked Branch</th>
                                 <td ><?php echo $project->getLipProject() ? $project->getLipProject()->assemble() : 'none'; ?></td>
                             </tr>
                             <tr>
@@ -50,6 +83,49 @@ $this->inlineScript()
                             </tfoot>
                         </table>
                     </form>
+                    <div class="space20"></div>
+                    <?php echo $this->form()->openTag($commissioningSetupForm); ?>
+                        <table class="table table-bordered table-striped" id="tbl_status">
+                            <thead>
+                            <tr>
+                                <th colspan="2">Project Setup</th>
+                            </tr>
+                            <tr>
+                                <td colspan="2">Below are the branch specific items that need to be setup for the project.</td>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td style="width: 250px">Installation Date</td>
+                                <td>
+                                    <div class="controls">
+                                        <div class="input-append no-margin-bot" id="dpYears" data-date="12-02-2012" data-date-format="dd-mm-yyyy" >
+                                            <?php echo $this->formElement($commissioningSetupForm->get('installed'));  ?>
+                                            <span class="add-on" id="startDtIcon"><i class="icon-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Commissioned Date</td>
+                                <td>
+                                    <div class="controls">
+                                        <div class="input-append no-margin-bot" id="dpYears" data-date="12-02-2012" data-date-format="dd-mm-yyyy">
+                                            <?php echo $this->formElement($commissioningSetupForm->get('commissioned'));  ?>
+                                            <span class="add-on" id="startDtIcon"><i class="icon-calendar"></i></span>
+                                        </div>
+                                    </div>
+
+                                </td>
+                            </tr>
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td colspan="2"><button class="btn btn-primary" id="btn-save-config"><i class="icon-ok icon-white"></i> Save Project Config</button></td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    <?php echo $this->form()->closeTag($commissioningSetupForm); ?>
                     <div class="space20"></div>
                     <table class="table table-bordered table-striped" id="tbl_status">
                         <thead>
@@ -130,7 +206,7 @@ $this->inlineScript()
                             </tbody>
                             <tfoot>
                             <tr>
-                                <td colspan="2"><button class="btn btn-primary" id="btn-save-status"><i class="icon-warning-sign"></i> Save Status</button></td>
+                                <td colspan="2"><button class="btn btn-primary" id="btn-save-status"><i class="icon-ok icon-white"></i> Save Status</button></td>
                             </tr>
                             </tfoot>
                         </table>

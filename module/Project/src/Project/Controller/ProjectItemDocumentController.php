@@ -1499,7 +1499,7 @@ class ProjectitemdocumentController extends ProjectSpecificController
         }
 
     }
-    
+
     
     public function deliveryNoteGenerateAction() {
         try {
@@ -1661,6 +1661,40 @@ class ProjectitemdocumentController extends ProjectSpecificController
         }
         
         return new JsonModel(empty($data)?array('err'=>true):$data);/**/
+    }
+
+
+    public function commissioningCertificateAction() {
+        $em = $this->getEntityManager();
+        $qb = $em->createQueryBuilder();
+        $qb->select('d')
+            ->from('Application\Entity\LiteipDevice', 'd')
+            ->innerJoin('d.drawing', 'dr')
+            ->where('dr.project=?1')
+            ->andWhere('d.IsE3=true')
+            ->setParameter(1, $this->getProject()->getLipProject()->getProjectID());
+        $devices = $qb->getQuery()->getResult();
+
+        $filename = 'Commissioning Certificate - ' . preg_replace('/[^a-z0-9-_ ]+/i', '', $this->getProject()->getName()) . ' ' . date('dmyHis');
+        $pdfVars = array(
+            'resourcesUri' => getcwd().DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR,
+            'project' => $this->getProject(),
+            'devices' => $devices,
+            'footer' => array (
+                'pages'=>true
+            ),
+        );
+
+        $pdf = new PdfModel();
+        $pdf->setOption('paperSize', 'pdf');
+        $pdf->setOption('paperOrientation', 'landscape');
+//        $pdf->setOption('filename', $filename . '.pdf');
+
+
+        $pdf->setVariables($pdfVars);
+        $pdf->setTemplate('project/projectitemdocument/telemetry/commissioning');
+
+        return $pdf;
     }
     
     

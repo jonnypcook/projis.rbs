@@ -2415,6 +2415,10 @@ class ProjectitemController extends ProjectSpecificController
                 $this->getEntityManager()->persist($this->getProject());
                 $this->getEntityManager()->flush();
 
+                $this->flashMessenger()->addMessage(array(
+                    'The project setup has been updated successfully', 'Project Setup Updated'
+                ));
+
                 return new JsonModel(array('error' => false));
             } else {
                 return new JsonModel(array('error'=>true, 'info'=>$form->getMessages()));

@@ -38,29 +38,27 @@ var Script = function () {
                     beforeSend: function onBeforeSend(xhr, settings) {},
                     error: function onError(XMLHttpRequest, textStatus, errorThrown) {},
                     success: function onUploadComplete(response) {
-                        try{
-                            console.log(response); return;
-                            var obj=jQuery.parseJSON(response);
-                            var k = 0;
-                            // an error has been detected
-                            if (obj.error == true) {
-                                growl('Error Saving Status!', 'The project statuses have NOT been updated successfully. Please contact support if this problem persists.', {});
-                            } else{ // no errors
-                                growl('Status Updated', 'The project statuses have been updated successfully', {});
-                            }
-                        }
-                        catch(error){
-
+                        var obj=jQuery.parseJSON(response);
+                        var k = 0;
+                        // an error has been detected
+                        if (obj.error == true) {
+                            var msg = "The project setup data could not be saved." +
+                                (!!obj.info ? "<br><br>" + obj.info : "" ) +
+                                "<br><br>Please contact support if this problem persists."
+                            growl('Error Saving!', msg, {});
+                            $('#commissioningLoader').fadeOut(function(){});
+                        } else{ // no errors
+                            window.location.reload();
                         }
                     },
                     complete: function(jqXHR, textStatus){
-                        $('#commissioningLoader').fadeOut(function(){});
+
                     }
                 });
             });
 
         } catch (ex) {
-
+            $('#commissioningLoader').fadeOut(function(){});
         }/**/
         return false;
     });

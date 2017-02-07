@@ -1,13 +1,108 @@
 <?php
 $this->headLink()
+    ->appendStylesheet('/assets/data-tables/DT_bootstrap.css')
     ->appendStylesheet('/assets/bootstrap-datepicker/css/datepicker.css')
 ;
 
 $this->inlineScript()
+    ->appendFile('/assets/fileajax/jquery.fileajax.js')
+    ->appendFile('/assets/data-tables/jquery.dataTables.js')
+    ->appendFile('/assets/data-tables/DT_bootstrap.js')
     ->appendFile('/assets/bootstrap-datepicker/js/bootstrap-datepicker.js')
     ->appendFile('/js/forms/project/commissioning.js');
 
+$url = '/client-' . $project->getClient()->getClientId() . '/project-' . $project->getProjectId() . '/commissioninguploaddrawing/';
+
+$this->inlineScript()->captureStart();
+echo <<<JS
+    $(function(){
+        $('#FormUploadDrawing').fileAjax(
+            {
+                url: "{$url}"
+            },
+            function(data){
+                try{
+                    var success = false;
+                    if(data.length) {
+                        obj = $.parseJSON(data);
+                        if (obj.error) {
+                            errtxt = '';
+
+                            var msg = "The drawing could not be attached to drawing." +
+                                    (!!obj.info ? "<br><br>" + obj.info : "" ) +
+                                    "<br><br>Please contact support if this problem persists.";
+                            growl('Error!', msg, {});
+                        } else { // no error
+                            growl('Image Uploaded Successfully!', 'The selected image has been uploaded and applied to the drawing successfully', {});
+                            var drawingRow = $('#tbl_status tr[data-drawing-id="' + obj.drawing.DrawingID + '"]');
+                            if (!!drawingRow) {
+                                drawingRow.find('td:nth-child(2)').text(obj.drawing.Width + 'px');
+                                drawingRow.find('td:nth-child(3)').text(obj.drawing.Height + 'px');
+                                if (!!obj.drawing.Activated) {
+                                    drawingRow.find('td:nth-child(4)').text('Yes');
+                                    drawingRow.find('.activate-drawing-image').hide();
+                                    drawingRow.find('.deactivate-drawing-image').show();
+                                } else {
+                                    drawingRow.find('td:nth-child(4)').text('No');
+                                    drawingRow.find('.activate-drawing-image').show();
+                                    drawingRow.find('.deactivate-drawing-image').hide();
+                                }
+                            }
+                            $('#modalUploadDrawing').modal('hide');
+                        }
+                    }
+                } catch (e) {
+                    console.log(data);
+                    growl('Oops - something went wrong!', "There was an issue saving the image to the drawing.<br><br>Please contact support if this problem persists.", {});
+                } finally {
+                    $('#uploadDrawingLoader').fadeOut(function(){});
+                }
+            },
+            function(){
+                $('#uploadDrawingLoader').fadeIn(function(){});
+                if (!$('input[name=file]').val().length) {
+                    $('#uploadDrawingLoader').fadeOut(function(){});
+                    growl('Error!', 'You must an image in order to proceed.', {});
+                    return false;
+                }
+
+                return true;
+            }
+        );
+
+
+    });
+
+JS;
+$this->inlineScript()->captureEnd();
+
 ?>
+<div id="modalUploadDrawing" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3 id="myModalLabel3">Upload Drawing Image&nbsp;</h3>
+    </div>
+    <div class="modal-body">
+        <form id="FormUploadDrawing" name="FormUploadDrawing" enctype="multipart/form-data" method="post" accept-charset="UTF-8" action="<?php
+            echo $url;
+        ?>" class="form-nomargin">
+            <input name="DrawingID" value="" type="hidden" />
+            <div id="uploadDrawingLoader" class="loader"></div>
+            <p>
+                Please select the image that you wish to attach to the selected drawing.<br />
+                <span class="text-info"><strong>Important:</strong> images should be in jpg or png format</span><br /><br />
+                <span id="lbl-file-info" class="label label-important">No file selected</span>&nbsp;&nbsp;
+                <a id="btn-select-file" class="btn btn-small" href="javascript:">select file</a>
+                <input type="file" name="file" accept="image/jpeg,image/png" style="visibility: hidden; width: 1px;" /><br /><br />
+                Please note: this will upload an image for the drawing which will replace any pre-existing images.
+            </p>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true"><i class="icon-remove"></i> Cancel</button>
+        <button class="btn btn-success" id="btn-confirm-upload-drawing" aria-hidden="true"><i class="icon-ok"></i> Confirm</button>
+    </div>
+</div>
 <div class="relative">
     <div id="commissioningLoader" class="loader"></div>
     <div class="row-fluid">
@@ -141,23 +236,22 @@ $this->inlineScript()
                             <th>Name</th>
                             <th>Width</th>
                             <th>Height</th>
-                            <th>Active</th>
-                            <th>Options</th>
+                            <th style="width: 120px">Active</th>
+                            <th style="width: 120px">Options</th>
                         </tr>
                         </thead>
                         <tbody>
                         <?php
                         if ($drawings) {
                             foreach ($drawings as $drawing) {
-                                echo '<tr>' .
+                                echo '<tr data-drawing-id="' . $drawing->getDrawingID() . '" data-project-id="' . $project->getProjectId() . '" data-client-id="' . $project->getClient()->getClientId() . '">' .
                                     '<td>' . $drawing->getDrawing() . '</td>' .
                                     '<td>' . $drawing->getWidth() . 'px</td>' .
                                     '<td>' . $drawing->getHeight() . 'px</td>' .
                                     '<td>' . ($drawing->isActivated() ? 'Yes' : 'No') . '</td>' .
-                                    '<td><button class="btn btn-primary btn-small" title="Upload image"><i class="icon-upload-alt"></i></button> ' .
-                                    ($drawing->isActivated() ? '<button title="Deactivate image" class="btn btn-danger btn-small"><i class="icon-remove"></i></button>' :
-                                        '<button title="Activate image" class="btn btn-success btn-small"><i class="icon-check"></i></button>'
-                                    ) .
+                                    '<td><button class="btn btn-primary btn-small upload-drawing-image pull-left" title="Upload image" style="margin-right: 4px"><i class="icon-upload-alt"></i></button> ' .
+                                        '<button title="Deactivate image" class="btn btn-danger btn-small deactivate-drawing-image pull-left" style="margin-right: 4px; display: ' . ($drawing->isActivated() ? 'block' : 'none') . '"><i class="icon-remove"></i></button> ' .
+                                        '<button title="Activate image" class="btn btn-success btn-small activate-drawing-image pull-left"  style="margin-right: 4px; display: ' . (!$drawing->isActivated() ? 'block' : 'none') . '"><i class="icon-check"></i></button>' .
                                     '</td>' .
                                     '</tr>';
                             }
@@ -167,6 +261,66 @@ $this->inlineScript()
                         ?>
                         </tbody>
                     </table>
+
+                    <div class="space20"></div>
+                    <table class="table table-bordered" >
+                        <thead>
+                        <tr>
+                            <th>Branch Devices</th>
+                        </tr>
+                        <tr>
+                            <td>Below are displayed the devices that have been detected and loaded from the selected linked branch.</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>
+                                <table class="table table-bordered table-striped" id="tbl_devices" action="/client-<?php echo $project->getClient()->getClientId(); ?>/project-<?php echo $project->getProjectId(); ?>/commissioningsavedevicetype/">
+                                    <thead>
+                                    <tr>
+                                        <th>Serial</th>
+                                        <th>Emergency</th>
+                                        <th>Floor</th>
+                                        <th style="width: 300px">Type</th>
+                                        <th style="width: 200px">Options</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php
+                                    if ($devices) {
+                                        foreach ($devices as $device) {
+                                            $deviceType = ($device->getType() ? $device->getType()->getName() : 'Undefined');
+                                            $deviceTypeId = ($device->getType() ? $device->getType()->getDeviceTypeID() : '');
+                                            echo '<tr>' .
+                                                '<td>' . $device->getDeviceSN() . '</td>' .
+                                                '<td>' . ($device->isIsE3() ? 'Yes' : 'No') . '</td>' .
+                                                '<td>' . $device->getDrawing()->getDrawing(true) . '</td>' .
+                                                '<td data-device-id="' . $device->getDeviceID() . '" data-device-type-id="' . $deviceTypeId . '" data-device-type-label="' . ($deviceType ? $deviceType : 'Undefined') . '">' . $deviceType . '</td>' .
+                                                '<td>' .
+                                                '<button class="btn btn-small btn-primary btn-edit-device-type"><i class="icon-edit"></i> Edit</button>' .
+                                                '<button style="display: none" class="btn btn-small btn-success btn-save-device-type"><i class="icon-save"></i> Save</button> ' .
+                                                '<button style="display: none" class="btn btn-small btn-danger btn-cancel-device-type"><i class="icon-remove"></i> Cancel</button>' .
+                                                '</td>' .
+                                                '</tr>';
+                                        }
+                                    } else {
+                                        echo '<tr><td colspan="5">There are no devices assigned/uploaded to the current branch</td></tr>';
+                                    }
+                                    ?>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <select id="sel-device-types" style="display: none">
+                        <option value="">Undefined</option>
+                    <?php
+                        foreach ($deviceTypes as $deviceType) {
+                            echo '<option value="' . $deviceType->getDeviceTypeID() . '">' . $deviceType->getName() . '</option>';
+                        }
+                    ?>
+                    </select>
 
                     <div class="space20"></div>
                     <form name="frmSaveStatus" id="frmSaveStatus" class="form-nomargin" action="/client-<?php echo $project->getClient()->getClientId(); ?>/project-<?php echo $project->getProjectId(); ?>/commissioningsavestatus/">

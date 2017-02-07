@@ -1,6 +1,9 @@
 <?php
 namespace Project\Controller;
 
+use Application\Entity\LiteipDevice;
+use Application\Entity\LiteipDeviceType;
+use DoctrineORMModule\Proxy\__CG__\Application\Entity\LiteipDrawing;
 use Project\Form\CommissioningSetupForm;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
@@ -2333,6 +2336,7 @@ class ProjectitemController extends ProjectSpecificController
      */
     public function commissioningAction()
     {
+
         $this->setCaption('Commissioning');
 
         $em = $this->getEntityManager();
@@ -2358,8 +2362,20 @@ class ProjectitemController extends ProjectSpecificController
                 ->andWhere('d.project = :pid')
                 ->setParameter('pid', $this->getProject()->getLipProject()->getProjectID());
             $drawings = $qb->getQuery()->getResult();
+
+            $qb = $em->createQueryBuilder();
+            $qb->select('d')
+                ->from('Application\Entity\LiteipDevice', 'd')
+                ->innerJoin('d.drawing', 'dr')
+                ->andWhere('dr.project = :pid')
+                ->setParameter('pid', $this->getProject()->getLipProject()->getProjectID())
+                ->add('orderBy', 'dr.DrawingID');
+            $devices = $qb->getQuery()->getResult();
+
+            $deviceTypes = $em->getRepository('Application\Entity\LiteipDeviceType')->findAll();
         } else {
             $drawings = array();
+            $devices = array();
         }
 
         $commissioningSetupForm = new CommissioningSetupForm();
@@ -2378,10 +2394,149 @@ class ProjectitemController extends ProjectSpecificController
 
         return $this->getView()
             ->setVariable('commissioningSetupForm', $commissioningSetupForm)
+            ->setVariable('devices', $devices)
+            ->setVariable('deviceTypes', $deviceTypes)
             ->setVariable('drawings', $drawings)
             ->setVariable('unassigned', $unassigned);
     }
 
+    /**
+     * @return JsonModel
+     */
+    public function commissioningUploadDrawingAction() {
+        try {
+            if (!($this->getRequest()->isXmlHttpRequest())) {
+                //throw new \Exception('illegal request');
+            }
+
+            $em = $this->getEntityManager();
+            $DrawingID = $this->params()->fromPost('DrawingID', false);
+            $file = $this->params()->fromFiles('file', false);
+
+            if (empty($file)) {
+                throw new \Exception('No files found');
+            }
+
+            if (!preg_match('/^[\d]+$/', $DrawingID)) {
+                throw new \Exception('Drawing id not found');
+            }
+
+            $drawing = $em->find('Application\Entity\LiteipDrawing', $DrawingID);
+
+            if (!$drawing) {
+                throw new \Exception('Drawing not found: ' . $drawing->getDrawingID());
+            }
+
+            if ($drawing->getProject()->getProjectID() !== $this->getProject()->getLipProject()->getProjectID()) {
+                throw new \Exception('LIP project mismatch');
+            }
+
+            $liteIpService = $this->getServiceLocator()->get('LiteIpService');
+            $liteIpService->saveDrawing($drawing, $file);
+
+            return new JsonModel(array('error'=>false, 'drawing' => $drawing->getArrayCopy()));
+
+        } catch (\Exception $ex) {
+            return new JsonModel(array('error'=>true, 'info'=>$ex->getMessage()));
+        }
+    }
+
+    /**
+     * @return JsonModel
+     */
+    public function commissioningActivateDrawingAction() {
+        try {
+            if (!($this->getRequest()->isXmlHttpRequest())) {
+                throw new \Exception('illegal request');
+            }
+
+            $em = $this->getEntityManager();
+            $DrawingID = $this->params()->fromPost('DrawingID', false);
+            $activate = $this->params()->fromPost('activate', false);
+
+            if ($activate === false) {
+                throw new \Exception('Activation state id not found');
+            }
+
+            $activate = ((int)$activate === 1);
+
+            if (!preg_match('/^[\d]+$/', $DrawingID)) {
+                throw new \Exception('Drawing id not found');
+            }
+
+            $drawing = $em->find('Application\Entity\LiteipDrawing', $DrawingID);
+
+            if (!$drawing) {
+                throw new \Exception('Drawing not found: ' . $drawing->getDrawingID());
+            }
+
+            if ($drawing->getProject()->getProjectID() !== $this->getProject()->getLipProject()->getProjectID()) {
+                throw new \Exception('LIP project mismatch');
+            }
+
+            $drawing->setActivated($activate);
+
+            return new JsonModel(array('error'=>false));
+
+        } catch (\Exception $ex) {
+            return new JsonModel(array('error'=>true, 'info'=>$ex->getMessage()));
+        }
+    }
+
+    /**
+     * update device type
+     * @return JsonModel
+     */
+    public function commissioningSaveDeviceTypeAction() {
+        try {
+            if (!$this->request->isXmlHttpRequest()) {
+                throw new \Exception('illegal request type');
+            }
+
+            $deviceId = $this->params()->fromPost('deviceId', false);
+            $deviceTypeId = $this->params()->fromPost('deviceTypeId', false);
+
+            if (empty($deviceId) || !preg_match('/^[\d]+$/', $deviceId)) {
+                throw new \Exception('Invalid device id');
+            }
+
+            if (!empty($deviceTypeId) && !preg_match('/^[\d]+$/', $deviceTypeId)) {
+                throw new \Exception('Invalid device type id');
+            }
+
+            $em = $this->getEntityManager();
+
+            $device = $em->find('Application\Entity\LiteipDevice', $deviceId);
+
+            if (!$device || !($device instanceof LiteipDevice)) {
+                throw new \Exception('Device could not be found');
+            }
+
+            if (!$this->getProject()->getLipProject() || ($device->getDrawing()->getProject()->getProjectID() !== $this->getProject()->getLipProject()->getProjectID())) {
+                throw new \Exception('Vendor project does not match project setup');
+            }
+
+            if (empty($deviceTypeId)) {
+                $device->setType(null);
+            } else {
+                $deviceType = $em->find('Application\Entity\LiteipDeviceType', $deviceTypeId);
+                if (!$deviceType || !($deviceType instanceof LiteipDeviceType)) {
+                    throw new \Exception('Device type could not be found');
+                }
+
+                $device->setType($deviceType);
+            }
+
+
+            $em->persist($device);
+            $em->flush();
+
+            return new JsonModel(array('error' => false));
+
+        } catch (\Exception $ex) {
+            return new JsonModel(array('error' => true, 'info' => $ex->getMessage()));
+        }
+    }
 
     /**
      * (commissioning) save project setup action

@@ -8,6 +8,7 @@ use Application\Entity\LiteipDrawing;
 use DoctrineModule\Stdlib\Hydrator\DoctrineObject as DoctrineHydrator;
 use Application\Entity\LiteipProject;
 use Zend\Http\Client;
+use ZendService\ReCaptcha\Exception;
 
 class LiteIpService
 {
@@ -307,6 +308,46 @@ class LiteIpService
         $uri = $config['dir'] . $drawing->getProject()->getProjectID() . DIRECTORY_SEPARATOR . $drawing->getDrawing();
 
         return $uri;
+    }
+
+    /**
+     * @param LiteipDrawing $drawing
+     * @param $file
+     * @throws \Exception
+     */
+    public function saveDrawing(LiteipDrawing $drawing, $file) {
+        $config = $this->getConfig();
+        $em = $this->getEntityManager();
+
+        $path = $config['dir'] . $drawing->getProject()->getProjectID();
+        if (!is_dir($path)) {
+            if (!mkdir($path)) {
+                throw new \Exception('project path could not be created');
+            }
+        }
+
+        $path .= DIRECTORY_SEPARATOR . $drawing->getDrawing();
+
+        $tempFile = $file['tmp_name'];
+        if (!file_exists($tempFile)) {
+            throw new \Exception('Could not find source file');
+        }
+
+        $imageSize = getimagesize($tempFile);
+        if (!$imageSize) {
+            throw new \Exception('Could not determine image size');
+        }
+
+        $drawing->setWidth($imageSize[0]);
+        $drawing->setHeight($imageSize[1]);
+        $drawing->setActivated(true);
+
+        if (!move_uploaded_file($tempFile, $path)) {
+            throw new \Exception('could not move file');
+        }
+
+        $em->persist($drawing);
+        $em->flush();
     }
 
 }

@@ -63,6 +63,14 @@ class LiteipDevice implements InputFilterAwareInterface
     /**
      * @var integer
      *
+     * @ORM\ManyToOne(targetEntity="Application\Entity\LiteipDeviceType")
+     * @ORM\JoinColumn(name="DeviceTypeID", referencedColumnName="DeviceTypeID", nullable=true)
+     */
+    private $type;
+
+    /**
+     * @var integer
+     *
      * @ORM\ManyToOne(targetEntity="Application\Entity\LiteipDeviceStatus")
      * @ORM\JoinColumn(name="DeviceStatusID", referencedColumnName="DeviceStatusID", nullable=true)
      */
@@ -91,6 +99,24 @@ class LiteipDevice implements InputFilterAwareInterface
     {
         $this->drawing = new ArrayCollection();
     }
+
+    /**
+     * @return int
+     */
+    public function getType()
+    {
+        return $this->type;
+    }
+
+    /**
+     * @param int $type
+     */
+    public function setType($type)
+    {
+        $this->type = $type;
+    }
+
+
 
     /**
      * @return \DateTime

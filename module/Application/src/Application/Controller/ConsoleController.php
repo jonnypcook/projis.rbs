@@ -189,7 +189,8 @@ class ConsoleController extends AbstractActionController
                     $device->getDeviceSN(),
                     $device->getStatus()->getDescription(),
                     empty($device->getLastE3StatusDate()) ? 'Unknown' : $device->getLastE3StatusDate()->format('d/m/Y H:i:s'),
-                    floor($diff / (60 * 60 * 24))
+                    floor($diff / (60 * 60 * 24)),
+                    $device->getType() ? $device->getType()->getName() : 'Undefined'
                 );
             } else {
                 $data['count']['passed']++;
@@ -205,7 +206,8 @@ class ConsoleController extends AbstractActionController
                     $device->getDeviceSN(),
                     floor($diff / (60 * 60 * 24)),
                     empty($device->getLastE3StatusDate()) ? '' : $device->getLastE3StatusDate()->format('d/m/Y H:i:s'),
-                    floor($diff / (60 * 60 * 24))
+                    floor($diff / (60 * 60 * 24)),
+                    $device->getType() ? $device->getType()->getName() : 'Undefined'
                 );
             }
         }
@@ -242,6 +244,7 @@ class ConsoleController extends AbstractActionController
                             '<td>' . $projectData['postcode'] . '</td>' .
                             '<td>' . $drawingName . '</td>' .
                             '<td>' . $deviceData[1] . '</td>' .
+                            '<td>' . $deviceData[5] . '</td>' .
                             '<td>' . $deviceData[2] . '</td>' .
                             '<td>' . $deviceData[3] . '</td></tr>';
                     }
@@ -251,6 +254,7 @@ class ConsoleController extends AbstractActionController
                             '<td>' . $projectData['postcode'] . '</td>' .
                             '<td>' . $drawingName . '</td>' .
                             '<td>' . $deviceData[1] . '</td>' .
+                            '<td>' . $deviceData[5] . '</td>' .
                             '<td>' . $deviceData[2] . ' days untested</td>' .
                             '<td>' . $deviceData[3] . '</td></tr>';
                     }
@@ -258,8 +262,8 @@ class ConsoleController extends AbstractActionController
                 }
             }
 
-            $tblErrors = '<h3>Error Report</h3><table><thead><tr><th>Site</th><th>Postcode</th><th>Drawing</th><th>Device SN</th><th>Status</th><th>Last Tested</th></tr></thead><tbody>' . $tblErrors . '</tbody></table>';
-            $tblWarnings = '<h3>Warnings Report</h3><table><thead><tr><th>Site</th><th>Postcode</th><th>Drawing</th><th>Device SN</th><th>Status</th><th>Last Tested</th></tr></thead><tbody>' . $tblWarnings . '</tbody></table>';
+            $tblErrors = '<h3>Error Report</h3><table><thead><tr><th>Site</th><th>Postcode</th><th>Drawing</th><th>Device SN</th><th>Device Type</th><th>Status</th><th>Last Tested</th></tr></thead><tbody>' . $tblErrors . '</tbody></table>';
+            $tblWarnings = '<h3>Warnings Report</h3><table><thead><tr><th>Site</th><th>Postcode</th><th>Drawing</th><th>Device SN</th><th>Device Type</th><th>Status</th><th>Last Tested</th></tr></thead><tbody>' . $tblWarnings . '</tbody></table>';
             $tblSummary = '<h3>Site Summary</h3><table><thead><tr><th>Site</th><th>Postcode</th><th>Devices</th><th>Passed</th><th>Errors</th><th>Warnings</th></tr></thead><tbody>' .
                 implode('', $tblSummary) . '</tbody>' .
                 '<tfoot><td>TOTAL</td><td></td><td class="right">' . $data['count']['device'] . '</td><td class="right">' . $data['count']['passed'] . '</td><td class="right">' . $data['count']['error'] . '</td><td class="right">' . $data['count']['warning'] . '</td></tfoot></table>';

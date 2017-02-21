@@ -9,11 +9,14 @@
 
 namespace Application\Controller;
 
+use Application\Entity\LiteipDeviceHistory;
+use Application\Entity\LiteipDrawing;
 use Application\Entity\User;
 use Application\Service\GoogleService;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\Console\Request as ConsoleRequest;
 use Zend\Http\Client;
+use DoctrineModule\Stdlib\Hydrator\DoctrineObject as DoctrineHydrator;
 
 
 class ConsoleController extends AbstractActionController
@@ -31,11 +34,12 @@ class ConsoleController extends AbstractActionController
         $mode = $request->getParam('mode', 'all'); // defaults to 'all'
         $verbose = $request->getParam('verbose') || $request->getParam('v');
         $testMode = $request->getParam('test') || $request->getParam('t');
+        $snapshotMode = $request->getParam('snapshot') || $request->getParam('s');
 
         $customerGroup = $this->getCustomerGroup($mode);
         $this->addOutputMessage("Starting {$mode} synchronization");
 
-        $this->synchronizeLiteIP($customerGroup, $verbose);
+        $this->synchronizeLiteIP($customerGroup, $verbose, $snapshotMode);
         $this->addOutputMessage("synchronization complete");
 
         return;
@@ -45,7 +49,7 @@ class ConsoleController extends AbstractActionController
      * @param $customerGroup
      * @param $verbose
      */
-    public function synchronizeLiteIP($customerGroup, $verbose) {
+    public function synchronizeLiteIP($customerGroup, $verbose, $snapshotMode = false) {
         // Check command flags
         $liteIPService = $this->getLiteIpService();
 
@@ -67,7 +71,7 @@ class ConsoleController extends AbstractActionController
             if ($verbose) {
                 $this->addOutputMessage('Synchronizing: ' . (empty($project->getProjectDescription()) ? 'undefined' : $project->getProjectDescription()) . ' (' . $project->getProjectID() . ' - ' . $project->getPostCode() . ')', $verbose);
             }
-            $liteIPService->synchronizeDevicesData(false, $project->getProjectID());
+            $liteIPService->synchronizeDevicesData(false, $project->getProjectID(), false, $snapshotMode);
         }
     }
 
@@ -85,6 +89,68 @@ class ConsoleController extends AbstractActionController
                 throw new \Exception('Illegal mode selected');
                 break;
         }
+    }
+
+    /**
+     * @throws RuntimeException
+     */
+    public function pollDrawingAction() {
+        date_default_timezone_set('Europe/London');
+        $em = $this->getEntityManager();
+        $request = $this->getRequest();
+
+
+        // Make sure that we are running in a console and the user has not tricked our
+        // application into running this action from a public web server.
+        if (!$request instanceof ConsoleRequest) {
+            throw new RuntimeException('You can only use this action from a console!');
+        }
+
+        $config = $this->getServiceLocator()->get('Config');
+
+        $drawingId = $request->getParam('drawingId', false);
+        $verbose = $request->getParam('verbose') || $request->getParam('v');
+
+        if (!$drawingId) {
+            throw new \RuntimeException('No drawing identifier found');
+        }
+
+        $drawing = $em->find('Application\Entity\LiteipDrawing', $drawingId);
+
+        if (!($drawing instanceof LiteipDrawing)) {
+            throw new \RuntimeException('Illegal drawing identifier found');
+        }
+
+        $this->addOutputMessage('history snapshot started');
+        $this->addOutputMessage('checking for devices', $verbose);
+
+        $liteIPService = $this->getLiteIpService();
+
+        $response = $liteIPService->getDeviceData($drawing->getDrawingID(), true);
+        $now = new \DateTime();
+        if ($response->getStatusCode() === 200) {
+            $this->addOutputMessage('response received', $verbose);
+            $devices = json_decode($response->getBody(), true);
+            $deviceIds = array();
+            foreach ($devices as $device) {
+                $this->addOutputMessage('processing: ' . $device['DeviceID']);
+                $deviceIds[] = $device['DeviceID'];
+                $liteipDevice = $em->find('Application\Entity\LiteipDevice', (int)$device['DeviceID']);
+
+                if (!($liteipDevice instanceof \Application\Entity\LiteipDevice)) {
+                    continue;
+                }
+
+                $this->addOutputMessage('creating history element', $verbose);
+                $liteIPService->takeHistorySnapshot($liteipDevice->getDeviceID(), $device['LastE3Status'], $device['LastE3StatusDate'], $now);
+                $this->addOutputMessage('added history element', $verbose);
+            }
+            $em->flush();
+        }
+
+        $this->addOutputMessage('history snapshot completed');
+        return;
+
     }
 
     /**

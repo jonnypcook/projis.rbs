@@ -215,7 +215,7 @@ return array(
             'routes' => array(
                 'synchronize' => array(
                     'options' => array(
-                        'route'    => 'synchronizeliteip [rbs|all]:mode [--verbose|-v] [-t|--test]',
+                        'route'    => 'synchronizeliteip [rbs|all]:mode [--verbose|-v] [-t|--test] [-s|--snapshot]',
                         'defaults' => array(
                             'controller' => 'Application\Controller\Console',
                             'action'     => 'synchronizeliteip'
@@ -228,6 +228,15 @@ return array(
                         'defaults' => array(
                             'controller' => 'Application\Controller\Console',
                             'action'     => 'emergency'
+                        )
+                    )
+                ),
+                'poll' => array(
+                    'options' => array(
+                        'route'    => 'poll <drawingId> [--verbose|-v] ',
+                        'defaults' => array(
+                            'controller' => 'Application\Controller\Console',
+                            'action'     => 'pollDrawing'
                         )
                     )
                 )

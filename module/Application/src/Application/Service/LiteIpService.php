@@ -3,6 +3,7 @@
 namespace Application\Service;
 
 use Application\Entity\LiteipDevice;
+use Application\Entity\LiteipDeviceHistory;
 use Application\Entity\LiteipDeviceStatus;
 use Application\Entity\LiteipDrawing;
 use DoctrineModule\Stdlib\Hydrator\DoctrineObject as DoctrineHydrator;
@@ -205,7 +206,7 @@ class LiteIpService
      * @throws \Doctrine\ORM\OptimisticLockException
      * @throws \Doctrine\ORM\TransactionRequiredException
      */
-    public function synchronizeDevicesData($drawingId = false, $projectId = false, $customerGroup = false) {
+    public function synchronizeDevicesData($drawingId = false, $projectId = false, $customerGroup = false, $addToHistory = false) {
         $em = $this->getEntityManager();
         $sql = "SELECT d FROM Application\Entity\LiteipDrawing d";
         if (!empty($drawingId)) {
@@ -229,6 +230,7 @@ class LiteIpService
             if ($response->getStatusCode() === 200) {
                 $devices = json_decode($response->getBody(), true);
                 $deviceIds = array();
+                $now = new \DateTime();
                 foreach ($devices as $device) {
                     $deviceIds[] = $device['DeviceID'];
                     $liteipDevice = $em->find('Application\Entity\LiteipDevice', $device['DeviceID']);
@@ -251,6 +253,10 @@ class LiteIpService
                     $hydrator->hydrate($hydratorData, $liteipDevice);
 
                     $em->persist($liteipDevice);
+
+                    if ($addToHistory === true && $liteipDevice->isIsE3()) {
+                        $this->takeHistorySnapshot($liteipDevice->getDeviceID(), $device['LastE3Status'], $device['LastE3StatusDate'], $now);
+                    }
                 }
                 $em->flush();
 
@@ -258,6 +264,33 @@ class LiteIpService
             }
         }
 
+    }
+
+    /**
+     * save snapshot of data
+     * @param $deviceId
+     * @param $statusId
+     * @param $LastE3StatusDate
+     * @param $testedDate
+     */
+    public function takeHistorySnapshot($deviceId, $statusId, $LastE3StatusDate, $testedDate) {
+        $em = $this->getEntityManager();
+        $liteipDeviceHistory = new LiteipDeviceHistory();
+        $hydrator = new DoctrineHydrator($em, 'Application\Entity\LiteipDeviceHistory');
+        $hydratorData = array(
+            'TestedDate' => $testedDate,
+            'device' => $deviceId
+        );
+        if (preg_match('/^[\d]+[\\/][\d]+[\\/][\d]+[ ][\d]+[:][\d]+[:][\d]+$/', $LastE3StatusDate)) {
+            $hydratorData['LastE3StatusDate'] = \DateTime::createFromFormat('d/m/Y H:i:s', $LastE3StatusDate);
+        }
+
+        if ((int)$statusId >= 0) {
+            $hydratorData['status'] = ((int)$statusId == 0) ? 600 : (int)$statusId;
+        }
+
+        $hydrator->hydrate($hydratorData, $liteipDeviceHistory);
+        $em->persist($liteipDeviceHistory);
     }
 
     /**

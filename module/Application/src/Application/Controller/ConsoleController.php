@@ -133,7 +133,7 @@ class ConsoleController extends AbstractActionController
             $devices = json_decode($response->getBody(), true);
             $deviceIds = array();
             foreach ($devices as $device) {
-                $this->addOutputMessage('processing: ' . $device['DeviceID']);
+                $this->addOutputMessage('processing: ' . $device['DeviceID'], $verbose);
                 $deviceIds[] = $device['DeviceID'];
                 $liteipDevice = $em->find('Application\Entity\LiteipDevice', (int)$device['DeviceID']);
 

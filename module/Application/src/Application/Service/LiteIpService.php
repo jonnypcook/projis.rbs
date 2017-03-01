@@ -300,6 +300,11 @@ class LiteIpService
      */
     protected function tidyDevices($deviceIds, $drawingId) {
         $em = $this->getEntityManager();
+        $query = $em->createQuery('DELETE FROM Application\\Entity\\LiteipDeviceHistory h WHERE h.device NOT IN (:devices)');
+        $query->setParameter('devices', $deviceIds);
+        $query->execute();
+        $em->flush();
+
         $queryBuilder = $em->createQueryBuilder();
 
         $queryBuilder

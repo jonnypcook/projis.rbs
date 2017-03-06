@@ -126,14 +126,16 @@ if ($project->getRetrofit()) {
                 <div class="status">Download CSV</div>
             </a>
         </div>
+        <?php if ($project->hasState(8)) { ?>
         <div class="metro-nav-block nav-block-red">
-            <a href="/client-<?php echo $project->getClient()->getClientId(); ?>/project-<?php echo $project->getProjectId(); ?>/survey/" class=" ">
+            <a href="/client-<?php echo $project->getClient()->getClientId(); ?>/project-<?php echo $project->getProjectId(); ?>/sitesurvey/" class=" ">
                 <div class="text-center">
                     <i class="icon-pencil"></i>
                 </div>
                 <div class="status">Survey</div>
             </a>
         </div>
+        <?php } ?>
     </div>
     <div class="space10"></div>
     <!--END METRO STATES-->

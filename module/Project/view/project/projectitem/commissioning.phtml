@@ -9,7 +9,8 @@ $this->inlineScript()
     ->appendFile('/assets/data-tables/jquery.dataTables.js')
     ->appendFile('/assets/data-tables/DT_bootstrap.js')
     ->appendFile('/assets/bootstrap-datepicker/js/bootstrap-datepicker.js')
-    ->appendFile('/js/forms/project/commissioning.js');
+    ->appendFile('/js/forms/project/commissioning.js?')
+;
 
 $url = '/client-' . $project->getClient()->getClientId() . '/project-' . $project->getProjectId() . '/commissioninguploaddrawing/';
 
@@ -304,7 +305,7 @@ $this->inlineScript()->captureEnd();
                                                 '</tr>';
                                         }
                                     } else {
-                                        echo '<tr><td colspan="5">There are no devices assigned/uploaded to the current branch</td></tr>';
+                                        //echo '<tr><td colspan="5">There are no devices assigned/uploaded to the current branch</td></tr>';
                                     }
                                     ?>
                                     </tbody>

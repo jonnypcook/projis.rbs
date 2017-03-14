@@ -252,14 +252,13 @@ class LiteIpService
                     }
                     $hydrator->hydrate($hydratorData, $liteipDevice);
 
-                    echo 'p';
                     $em->persist($liteipDevice);
-                    $em->flush();
 
                     if ($addToHistory === true && $liteipDevice->isIsE3()) {
                         $this->takeHistorySnapshot($liteipDevice->getDeviceID(), $device['LastE3Status'], $device['LastE3StatusDate'], $now);
                     }
                 }
+                $em->flush();
 
                 $this->tidyDevices($deviceIds, $drawing->getDrawingId());
             }
@@ -275,7 +274,6 @@ class LiteIpService
      * @param $testedDate
      */
     public function takeHistorySnapshot($deviceId, $statusId, $LastE3StatusDate, $testedDate) {
-        echo '.';
         $em = $this->getEntityManager();
         $liteipDeviceHistory = new LiteipDeviceHistory();
         $hydrator = new DoctrineHydrator($em, 'Application\Entity\LiteipDeviceHistory');
@@ -293,7 +291,6 @@ class LiteIpService
 
         $hydrator->hydrate($hydratorData, $liteipDeviceHistory);
         $em->persist($liteipDeviceHistory);
-        $em->flush();
     }
 
     /**
@@ -303,10 +300,6 @@ class LiteIpService
      */
     protected function tidyDevices($deviceIds, $drawingId) {
         $em = $this->getEntityManager();
-        $query = $em->createQuery('DELETE FROM Application\\Entity\\LiteipDeviceHistory h WHERE h.device NOT IN (:devices)');
-        $query->setParameter('devices', $deviceIds);
-        $query->execute();
-        $em->flush();
 
         $queryBuilder = $em->createQueryBuilder();
 
@@ -319,6 +312,11 @@ class LiteIpService
             ->setParameter('DeviceID', $deviceIds);
 
         foreach ($queryBuilder->getQuery()->getResult() as $device) {
+            $query = $em->createQuery('DELETE FROM Application\\Entity\\LiteipDeviceHistory h WHERE h.device = (:devices)')
+                ->setParameter('devices', $device->getDeviceID());
+            $query->execute();
+            $em->flush();
+
             $em->remove($device);
         }
 
